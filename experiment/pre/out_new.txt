@@ -1,0 +1,179 @@
+===
+insert-node
+---
+TypeDeclaration [173,333]
+to
+CompilationUnit [0,240]
+at 1
+===
+insert-node
+---
+TYPE_DECLARATION_KIND: class [173,178]
+to
+TypeDeclaration [173,333]
+at 0
+===
+insert-node
+---
+SimpleName: Calc [179,183]
+to
+TypeDeclaration [173,333]
+at 1
+===
+insert-node
+---
+MethodDeclaration [188,256]
+to
+TypeDeclaration [173,333]
+at 2
+===
+move-tree
+---
+MethodDeclaration [167,237]
+    Modifier: public [167,173]
+    Modifier: static [174,180]
+    PrimitiveType: int [181,184]
+    SimpleName: multi [185,190]
+    SingleVariableDeclaration [191,199]
+        PrimitiveType: int [191,194]
+        SimpleName: num1 [195,199]
+    SingleVariableDeclaration [201,209]
+        PrimitiveType: int [201,204]
+        SimpleName: num2 [205,209]
+    Block [211,237]
+        ReturnStatement [215,234]
+            InfixExpression [222,233]
+                SimpleName: num1 [222,226]
+                INFIX_EXPRESSION_OPERATOR: * [227,228]
+                SimpleName: num2 [229,233]
+to
+TypeDeclaration [173,333]
+at 3
+===
+insert-node
+---
+Modifier: public [188,194]
+to
+MethodDeclaration [188,256]
+at 0
+===
+insert-node
+---
+Modifier: static [195,201]
+to
+MethodDeclaration [188,256]
+at 1
+===
+insert-node
+---
+PrimitiveType: int [202,205]
+to
+MethodDeclaration [188,256]
+at 2
+===
+insert-node
+---
+SimpleName: add [206,209]
+to
+MethodDeclaration [188,256]
+at 3
+===
+insert-node
+---
+SingleVariableDeclaration [210,218]
+to
+MethodDeclaration [188,256]
+at 4
+===
+insert-node
+---
+SingleVariableDeclaration [220,228]
+to
+MethodDeclaration [188,256]
+at 5
+===
+insert-node
+---
+Block [230,256]
+to
+MethodDeclaration [188,256]
+at 6
+===
+insert-node
+---
+PrimitiveType: int [210,213]
+to
+SingleVariableDeclaration [210,218]
+at 0
+===
+insert-node
+---
+SimpleName: num1 [214,218]
+to
+SingleVariableDeclaration [210,218]
+at 1
+===
+insert-node
+---
+PrimitiveType: int [220,223]
+to
+SingleVariableDeclaration [220,228]
+at 0
+===
+insert-node
+---
+SimpleName: num2 [224,228]
+to
+SingleVariableDeclaration [220,228]
+at 1
+===
+insert-node
+---
+ReturnStatement [234,253]
+to
+Block [230,256]
+at 0
+===
+insert-node
+---
+InfixExpression [241,252]
+to
+ReturnStatement [234,253]
+at 0
+===
+insert-node
+---
+SimpleName: num1 [241,245]
+to
+InfixExpression [241,252]
+at 0
+===
+insert-node
+---
+INFIX_EXPRESSION_OPERATOR: + [246,247]
+to
+InfixExpression [241,252]
+at 1
+===
+insert-node
+---
+SimpleName: num2 [248,252]
+to
+InfixExpression [241,252]
+at 2
+===
+insert-node
+---
+METHOD_INVOCATION_RECEIVER [104,108]
+to
+MethodInvocation [104,115]
+at 0
+===
+insert-node
+---
+SimpleName: Calc [104,108]
+to
+METHOD_INVOCATION_RECEIVER [104,108]
+at 0
+
+プロセスは終了コード 0 で完了しました

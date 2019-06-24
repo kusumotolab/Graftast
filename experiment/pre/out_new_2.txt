@@ -1,0 +1,601 @@
+===
+insert-node
+---
+TypeDeclaration [0,167]
+to
+CompilationUnit [0,240]
+at 0
+===
+insert-node
+---
+TypeDeclaration [0,167]
+to
+CompilationUnit [0,240]
+at 1
+===
+move-tree
+---
+Modifier: public [0,6]
+to
+TypeDeclaration [0,167]
+at 0
+===
+move-tree
+---
+TYPE_DECLARATION_KIND: class [7,12]
+to
+TypeDeclaration [0,167]
+at 1
+===
+update-node
+---
+SimpleName: Main [13,17]
+replace Main by Calc
+===
+move-tree
+---
+SimpleName: Main [13,17]
+to
+TypeDeclaration [0,167]
+at 2
+===
+insert-node
+---
+MethodDeclaration [22,90]
+to
+TypeDeclaration [0,167]
+at 3
+===
+insert-node
+---
+MethodDeclaration [94,164]
+to
+TypeDeclaration [0,167]
+at 4
+===
+insert-node
+---
+Modifier: public [0,6]
+to
+TypeDeclaration [0,167]
+at 0
+===
+insert-node
+---
+TYPE_DECLARATION_KIND: class [7,12]
+to
+TypeDeclaration [0,167]
+at 1
+===
+insert-node
+---
+SimpleName: Calc [13,17]
+to
+TypeDeclaration [0,167]
+at 2
+===
+insert-node
+---
+MethodDeclaration [22,90]
+to
+TypeDeclaration [0,167]
+at 3
+===
+move-tree
+---
+MethodDeclaration [167,237]
+    Modifier: public [167,173]
+    Modifier: static [174,180]
+    PrimitiveType: int [181,184]
+    SimpleName: multi [185,190]
+    SingleVariableDeclaration [191,199]
+        PrimitiveType: int [191,194]
+        SimpleName: num1 [195,199]
+    SingleVariableDeclaration [201,209]
+        PrimitiveType: int [201,204]
+        SimpleName: num2 [205,209]
+    Block [211,237]
+        ReturnStatement [215,234]
+            InfixExpression [222,233]
+                SimpleName: num1 [222,226]
+                INFIX_EXPRESSION_OPERATOR: * [227,228]
+                SimpleName: num2 [229,233]
+to
+TypeDeclaration [0,167]
+at 4
+===
+move-tree
+---
+Modifier: public [22,28]
+to
+MethodDeclaration [22,90]
+at 0
+===
+move-tree
+---
+Modifier: static [29,35]
+to
+MethodDeclaration [22,90]
+at 1
+===
+update-node
+---
+PrimitiveType: void [36,40]
+replace void by int
+===
+move-tree
+---
+PrimitiveType: void [36,40]
+to
+MethodDeclaration [22,90]
+at 2
+===
+update-node
+---
+SimpleName: main [41,45]
+replace main by add
+===
+move-tree
+---
+SimpleName: main [41,45]
+to
+MethodDeclaration [22,90]
+at 3
+===
+move-tree
+---
+SingleVariableDeclaration [46,59]
+    SimpleType [46,52]
+        SimpleName: String [46,52]
+    SimpleName: args [53,57]
+    Dimension [57,59]
+to
+MethodDeclaration [22,90]
+at 4
+===
+insert-node
+---
+SingleVariableDeclaration [54,62]
+to
+MethodDeclaration [22,90]
+at 5
+===
+insert-node
+---
+Block [64,90]
+to
+MethodDeclaration [22,90]
+at 6
+===
+insert-node
+---
+Modifier: public [94,100]
+to
+MethodDeclaration [94,164]
+at 0
+===
+insert-node
+---
+Modifier: static [101,107]
+to
+MethodDeclaration [94,164]
+at 1
+===
+move-tree
+---
+PrimitiveType: int [78,81]
+to
+MethodDeclaration [94,164]
+at 2
+===
+update-node
+---
+SimpleName: b [82,83]
+replace b by multi
+===
+move-tree
+---
+SimpleName: b [82,83]
+to
+MethodDeclaration [94,164]
+at 3
+===
+insert-node
+---
+SingleVariableDeclaration [118,126]
+to
+MethodDeclaration [94,164]
+at 4
+===
+insert-node
+---
+SingleVariableDeclaration [128,136]
+to
+MethodDeclaration [94,164]
+at 5
+===
+insert-node
+---
+Block [138,164]
+to
+MethodDeclaration [94,164]
+at 6
+===
+insert-node
+---
+Modifier: public [22,28]
+to
+MethodDeclaration [22,90]
+at 0
+===
+insert-node
+---
+Modifier: static [29,35]
+to
+MethodDeclaration [22,90]
+at 1
+===
+insert-node
+---
+PrimitiveType: int [36,39]
+to
+MethodDeclaration [22,90]
+at 2
+===
+update-node
+---
+SimpleName: a [110,111]
+replace a by add
+===
+move-tree
+---
+SimpleName: a [110,111]
+to
+MethodDeclaration [22,90]
+at 3
+===
+insert-node
+---
+SingleVariableDeclaration [44,52]
+to
+MethodDeclaration [22,90]
+at 4
+===
+insert-node
+---
+SingleVariableDeclaration [54,62]
+to
+MethodDeclaration [22,90]
+at 5
+===
+insert-node
+---
+Block [64,90]
+to
+MethodDeclaration [22,90]
+at 6
+===
+insert-node
+---
+PrimitiveType: int [44,47]
+to
+SingleVariableDeclaration [46,59]
+at 0
+===
+update-node
+---
+SimpleName: String [46,52]
+replace String by num1
+===
+move-tree
+---
+SimpleName: String [46,52]
+to
+SingleVariableDeclaration [46,59]
+at 1
+===
+move-tree
+---
+PrimitiveType: int [65,68]
+to
+SingleVariableDeclaration [54,62]
+at 0
+===
+update-node
+---
+SimpleName: a [69,70]
+replace a by num2
+===
+move-tree
+---
+SimpleName: a [69,70]
+to
+SingleVariableDeclaration [54,62]
+at 1
+===
+insert-node
+---
+ReturnStatement [68,87]
+to
+Block [64,90]
+at 0
+===
+move-tree
+---
+PrimitiveType: int [94,97]
+to
+SingleVariableDeclaration [118,126]
+at 0
+===
+update-node
+---
+SimpleName: ans [98,101]
+replace ans by num1
+===
+move-tree
+---
+SimpleName: ans [98,101]
+to
+SingleVariableDeclaration [118,126]
+at 1
+===
+insert-node
+---
+PrimitiveType: int [128,131]
+to
+SingleVariableDeclaration [128,136]
+at 0
+===
+update-node
+---
+SimpleName: multi [104,109]
+replace multi by num2
+===
+move-tree
+---
+SimpleName: multi [104,109]
+to
+SingleVariableDeclaration [128,136]
+at 1
+===
+insert-node
+---
+ReturnStatement [142,161]
+to
+Block [138,164]
+at 0
+===
+insert-node
+---
+PrimitiveType: int [44,47]
+to
+SingleVariableDeclaration [44,52]
+at 0
+===
+update-node
+---
+SimpleName: b [113,114]
+replace b by num1
+===
+move-tree
+---
+SimpleName: b [113,114]
+to
+SingleVariableDeclaration [44,52]
+at 1
+===
+insert-node
+---
+PrimitiveType: int [54,57]
+to
+SingleVariableDeclaration [54,62]
+at 0
+===
+update-node
+---
+SimpleName: println [133,140]
+replace println by num2
+===
+move-tree
+---
+SimpleName: println [133,140]
+to
+SingleVariableDeclaration [54,62]
+at 1
+===
+insert-node
+---
+ReturnStatement [68,87]
+to
+Block [64,90]
+at 0
+===
+insert-node
+---
+InfixExpression [75,86]
+to
+ReturnStatement [68,87]
+at 0
+===
+insert-node
+---
+InfixExpression [149,160]
+to
+ReturnStatement [142,161]
+at 0
+===
+move-tree
+---
+InfixExpression [141,158]
+    StringLiteral: "answer : " [141,152]
+    INFIX_EXPRESSION_OPERATOR: + [153,154]
+    SimpleName: ans [155,158]
+to
+ReturnStatement [68,87]
+at 0
+===
+insert-node
+---
+SimpleName: num1 [75,79]
+to
+InfixExpression [75,86]
+at 0
+===
+insert-node
+---
+INFIX_EXPRESSION_OPERATOR: + [80,81]
+to
+InfixExpression [75,86]
+at 1
+===
+insert-node
+---
+SimpleName: num2 [82,86]
+to
+InfixExpression [75,86]
+at 2
+===
+insert-node
+---
+SimpleName: num1 [149,153]
+to
+InfixExpression [149,160]
+at 0
+===
+insert-node
+---
+INFIX_EXPRESSION_OPERATOR: * [154,155]
+to
+InfixExpression [149,160]
+at 1
+===
+insert-node
+---
+SimpleName: num2 [156,160]
+to
+InfixExpression [149,160]
+at 2
+===
+insert-node
+---
+SimpleName: num1 [75,79]
+to
+InfixExpression [141,158]
+at 0
+===
+update-node
+---
+SimpleName: ans [155,158]
+replace ans by num2
+===
+delete-node
+---
+SimpleType [46,52]
+===
+===
+delete-node
+---
+SimpleName: args [53,57]
+===
+===
+delete-node
+---
+Dimension [57,59]
+===
+===
+delete-node
+---
+StringLiteral: "answer : " [141,152]
+===
+===
+delete-node
+---
+NumberLiteral: 2 [73,74]
+===
+===
+delete-node
+---
+VariableDeclarationFragment [69,74]
+===
+===
+delete-node
+---
+VariableDeclarationStatement [65,75]
+===
+===
+delete-node
+---
+NumberLiteral: 3 [86,87]
+===
+===
+delete-node
+---
+VariableDeclarationFragment [82,87]
+===
+===
+delete-node
+---
+VariableDeclarationStatement [78,88]
+===
+===
+delete-node
+---
+METHOD_INVOCATION_ARGUMENTS [110,114]
+===
+===
+delete-node
+---
+MethodInvocation [104,115]
+===
+===
+delete-node
+---
+VariableDeclarationFragment [98,115]
+===
+===
+delete-node
+---
+VariableDeclarationStatement [94,116]
+===
+===
+delete-node
+---
+QualifiedName: System.out [122,132]
+===
+===
+delete-node
+---
+METHOD_INVOCATION_RECEIVER [122,132]
+===
+===
+delete-node
+---
+METHOD_INVOCATION_ARGUMENTS [141,158]
+===
+===
+delete-node
+---
+MethodInvocation [122,159]
+===
+===
+delete-node
+---
+ExpressionStatement [122,160]
+===
+===
+delete-node
+---
+Block [61,163]
+===
+===
+delete-node
+---
+MethodDeclaration [22,163]
+===
+===
+delete-node
+---
+TypeDeclaration [0,240]
+===
+
+プロセスは終了コード 0 で完了しました
