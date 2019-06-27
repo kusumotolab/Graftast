@@ -85,8 +85,9 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
 
     @Override
     public void run() {
-        //DirectoryComparator comparator = new DirectoryComparator(opts.src, opts.dst);
-        DirectoryComparator comparator = new DirectoryComparator(getTekitoAbsolutePath(opts.src), getTekitoAbsolutePath(opts.dst));
+        DirectoryComparator comparator = new DirectoryComparator(opts.src, opts.dst);
+        //DirectoryComparator comparator = new DirectoryComparator(getTekitoAbsolutePath(opts.src), getTekitoAbsolutePath(opts.dst));
+        //DirectoryComparator comparator = new DirectoryComparator("tmp/srcSource", "tmp/dstSource");
         comparator.compare();
         configureSpark(comparator, opts.defaultPort);
         Spark.awaitInitialization();
@@ -109,12 +110,14 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
         });
         get("/diff/:id", (request, response) -> {
             int id = Integer.parseInt(request.params(":id"));
-            Pair<File, File> pair = comparator.getModifiedFiles().get(id);
-            Renderable view = new DiffView(pair.first, pair.second,
+            //Pair<File, File> pair = comparator.getModifiedFiles().get(id);
+            Renderable view = new DiffView(
+                    //pair.first, pair.second,
+                    new File("tmp/srcSource"), new File("tmp/dstSource"),
                     //this.getTreeContext(pair.first.getAbsolutePath()),
-                    this.getProjectTreeContext(pair.first.getAbsolutePath()),
+                    this.getProjectTreeContext(new File(opts.src).getAbsolutePath(), "tmp/srcSource"),
                     //this.getTreeContext(pair.second.getAbsolutePath()),
-                    this.getProjectTreeContext(pair.second.getAbsolutePath()),
+                    this.getProjectTreeContext(new File(opts.dst).getAbsolutePath(), "tmp/dstSource"),
                     getMatcher(),
                     new ChawatheScriptGenerator());
             return render(view);
@@ -128,18 +131,21 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
             int id = Integer.parseInt(request.params(":id"));
             Pair<File, File> pair = comparator.getModifiedFiles().get(id);
             //return readFile(pair.first.getAbsolutePath(), Charset.defaultCharset());
-            return readFile(getTekitoAbsolutePath(pair.first), Charset.defaultCharset());
+            return readFile("tmp/srcSource", Charset.defaultCharset());
+            //return readFile(getTekitoAbsolutePath(pair.first), Charset.defaultCharset());
         });
         get("/right/:id", (request, response) -> {
             int id = Integer.parseInt(request.params(":id"));
             Pair<File, File> pair = comparator.getModifiedFiles().get(id);
             //return readFile(pair.second.getAbsolutePath(), Charset.defaultCharset());
-            return readFile(getTekitoAbsolutePath(pair.second), Charset.defaultCharset());
+            return readFile("tmp/dstSource", Charset.defaultCharset());
+            //return readFile(getTekitoAbsolutePath(pair.second), Charset.defaultCharset());
         });
         get("/script/:id", (request, response) -> {
             int id = Integer.parseInt(request.params(":id"));
             Pair<File, File> pair = comparator.getModifiedFiles().get(id);
-            Renderable view = new ScriptView(pair.first, pair.second);
+            //Renderable view = new ScriptView(pair.first, pair.second);
+            Renderable view = new ScriptView(new File("tmp/srcSource"), new File("tmp/dstSource"));
             return render(view);
         });
         get("/quit", (request, response) -> {
@@ -168,6 +174,10 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
         return PGenerator.getProjectTreeContext(file, "java");
     }
 
+    private static TreeContext getProjectTreeContext(String file, String tmp) throws IOException {
+        return PGenerator.getProjectTreeContext(file, "java", tmp);
+    }
+
     //TODO 適当にもほどがある
 
     /**
@@ -178,10 +188,10 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
     private static String getTekitoAbsolutePath(File path) {
         File[] files = path.listFiles();
         for (File file: files) {
-            if (file.isDirectory()) {
-
-            } else if (file.getPath().endsWith("java")){
-                return file.getAbsolutePath();
+            if (!file.isDirectory()) {
+                if (file.getPath().endsWith("java")){
+                    return file.getAbsolutePath();
+                }
             }
         }
         return "";
@@ -191,12 +201,13 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
         File f = new File(path);
         File[] files = f.listFiles();
         for (File file: files) {
-            if (file.isDirectory()) {
-
-            } else if (file.getPath().endsWith("java")){
-                return file.getAbsolutePath();
+            if (!file.isDirectory()) {
+                if (file.getPath().endsWith("java")){
+                    return file.getAbsolutePath();
+                }
             }
         }
         return "";
     }
+
 }
