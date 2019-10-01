@@ -3,15 +3,12 @@ package pgenerator;
 import com.github.gumtreediff.actions.*;
 import com.github.gumtreediff.actions.model.Action;
 import com.github.gumtreediff.client.Run;
-import com.github.gumtreediff.client.diff.web.WebDiff;
 import com.github.gumtreediff.gen.Generators;
 import com.github.gumtreediff.matchers.MappingStore;
 import com.github.gumtreediff.matchers.Matcher;
 import com.github.gumtreediff.matchers.Matchers;
-import com.github.gumtreediff.tree.ITree;
-import com.github.gumtreediff.tree.Tree;
-import com.github.gumtreediff.tree.TreeContext;
-import com.github.gumtreediff.tree.TypeSet;
+import com.github.gumtreediff.tree.*;
+import com.github.gumtreediff.utils.Pair;
 import webdiff.WebDiffMod;
 
 import java.io.*;
@@ -24,6 +21,7 @@ import java.util.List;
 public class PGenerator {
 
     private static List<File> noChangedFiles = new LinkedList<>();
+    static int num = 1;
 
     public static void main(String[] args) {
         Run.initGenerators();
@@ -31,11 +29,15 @@ public class PGenerator {
 
         ITree srcProject;
         ITree dstProject;
+        Pair<ITree, ITree> projectTrees;
         try {
             //srcProject = Generators.getInstance().getTree("./testData/1/Main.java").getRoot();
             //dstProject = Generators.getInstance().getTree("./testData/2/Main.java").getRoot();
-            srcProject = getProjectTree(args[0], "java", "tmp/srcSource");
-            dstProject = getProjectTree(args[1], "java", "tmp/dstSource");
+            //srcProject = getProjectTree(args[0], "java", "tmp/srcSource");
+            //dstProject = getProjectTree(args[1], "java", "tmp/dstSource");
+            projectTrees = getProjectTreePair(args[0], args[1], "java", "tmp/srcSource", "tmp/dstSource");
+            srcProject = projectTrees.first;
+            dstProject = projectTrees.second;
         } catch(IOException e) {
             e.printStackTrace();
             return;
@@ -44,6 +46,7 @@ public class PGenerator {
         long startTime = System.currentTimeMillis();
 
         Matcher m = Matchers.getInstance().getMatcher();
+        //MappingStore mappingStorePre = new ProjectMatcher().match(srcProject, dstProject);
         MappingStore mappingStore = m.match(srcProject, dstProject);
 
         long endTime = System.currentTimeMillis();
@@ -57,7 +60,7 @@ public class PGenerator {
         for (Action action : editScript) {
             action.getName();
             //System.out.println(action.getName());
-            //System.out.println(action.toString());
+            System.out.println(action.toString());
         }
 
 
@@ -107,27 +110,59 @@ public class PGenerator {
      */
     public static ITree getProjectTree(String dir, String type) throws IOException {
         List<File> files = findAllFiles(new File(dir), type);
-        ITree projectTree = new Tree(TypeSet.type("CompilationUnit")); //土台となる木の元
+        ITree projectTree = new ProjectTree(TypeSet.type("CompilationUnit")); //土台となる木の元
         int totalLength = 0; //プロジェクト全体のLengthを記録．処理中は累積の長さになってる
         for (File file: files) {
             if (isUnChangedFile(file)) //変更されていないファイルとファイル名が一致した時
                 continue;
             ITree it = Generators.getInstance().getTree(file.getAbsolutePath()).getRoot();
-            //ファイル冒頭につけてる装飾の分だけプラス
+            it.setPos(totalLength);            //ファイル冒頭につけてる装飾の分だけプラス
             totalLength += 105 + file.getName().length();
+            it.setPos(totalLength);
             //一番最後の子要素のlengthでそのファイルの実質の長さを求めている
             int length = it.getChild(it.getChildren().size() - 1).getLength() + it.getChild(it.getChildren().size() - 1).getPos();
             fixTreePosLength(it, totalLength); //posとlengthを修正 意味があるかは知らん むしろない方がいい気が... TODO:要検証 → ファイルを1つの画面にまとめて表示する場合は必要
             totalLength += length + 1;
             //ファイル末尾が "}"なら+0でOK ただし，改行とか入っていればそれを消すか+いくつかする必要がある
-            for (ITree child: it.getChildren()) {
+            /*for (ITree child: it.getChildren()) {
                 //ファイルから得たITreeをprojectTreeに移動する．
                 projectTree.addChild(child);
                 child.setParent(projectTree); //親をプロジェクト全体（root）に変更
-            }
+            }*/
+            it.setLabel(file.getName());
+            projectTree.addChild(it);
         }
         projectTree.setLength(totalLength);
-        return projectTree;
+        return convertProjectTree(projectTree, new ProjectTree(TypeSet.type("CompilationUnit")));
+        //return projectTree;
+    }
+
+    /**
+     * 木の各要素をProjectTreeクラスのオブジェクトに変更する
+     * @param iTree 変換元の木
+     * @param pt 土台となる木
+     * @return
+     */
+    private static ITree convertProjectTree(ITree iTree, ITree pt) {
+        for (ITree it: iTree.getChildren()) {
+            if (it.getChildren().size() == 0) {
+                ProjectTree projectTree = new ProjectTree(it.getType());
+                projectTree.setPos(it.getPos());
+                projectTree.setLabel(it.getLabel());
+                projectTree.setLength(it.getLength());
+                pt.addChild(projectTree);
+
+            } else {
+                ProjectTree projectTree = new ProjectTree(it.getType());
+                projectTree.setPos(it.getPos());
+                projectTree.setLabel(it.getLabel());
+                projectTree.setLength(it.getLength());
+                pt.addChild(projectTree);
+                convertProjectTree(it, projectTree);
+            }
+        }
+        pt.setLength(iTree.getLength());
+        return pt;
     }
 
 
@@ -239,7 +274,7 @@ public class PGenerator {
         for (File src: srcFiles) {
             for (File dst: dstFiles) {
                 if (src.getName().equals(dst.getName())) {
-                    String[] command = {"diff", src.getAbsolutePath(), dst.getAbsolutePath()};
+                    String[] command = {"diff", "-bBE", src.getAbsolutePath(), dst.getAbsolutePath()};
                     Process process = null;
                     try {
                         process = runtime.exec(command);
@@ -287,5 +322,178 @@ public class PGenerator {
         }
         return false;
     }
+
+    public static Pair<ITree, ITree> getProjectTreePair(String src, String dst, String type, String srcTmp, String dstTmp) throws IOException {
+        ITree srcTree = getProjectTree(src, type, srcTmp);
+        ITree dstTree = getProjectTree(dst, type, dstTmp);
+        for (ITree sit : srcTree.getChildren()) {
+            for (ITree dit : dstTree.getChildren()) {
+                if (sit.getLabel().equals(dit.getLabel())) {
+                    Matcher m = Matchers.getInstance().getMatcher();
+                    MappingStore mappingStore = m.match(sit, dit); //先に同じファイル同士でマッチング
+                    deleteSrcNode(sit, mappingStore);
+                    deleteDstNode(dit, mappingStore);
+                    //setDstMappingID((ProjectTree)dit, mappingStore);
+                }
+            }
+        }
+        fixMetrics(srcTree);
+        fixMetrics(dstTree);
+        return new Pair<>(srcTree, dstTree);
+    }
+
+    public static Pair<TreeContext, TreeContext> getProjectTreeContextPair(String src, String dst, String type, String srcTmp, String dstTmp) throws IOException {
+        Pair<ITree, ITree> projectTreePair = getProjectTreePair(src, dst, type, srcTmp, dstTmp);
+        TreeContext srcTree = new TreeContext();
+        TreeContext dstTree = new TreeContext();
+        srcTree.setRoot(projectTreePair.first);
+        dstTree.setRoot(projectTreePair.second);
+        return new Pair<>(srcTree, dstTree);
+    }
+
+    public static int generateNumber() {
+        return num++;
+    }
+
+    private static void deleteSrcNode(ITree src, MappingStore mappingStore) {
+        for (int i = 0; i < src.getChildren().size(); i++) {
+            ITree it = src.getChild(i);
+            deleteSrcNode(it, mappingStore);
+            if (mappingStore.isSrcMapped(it) && hasSameTypeAndLabel(it, mappingStore.getDstForSrc(it))) {
+                if (it.getChildren().size() == 0) {
+                    it.getParent().getChildren().remove(it);
+                    i -= 1;
+                } else if (isSingleProgeny(it)) {
+                } else {
+                    int index = it.getParent().getChildPosition(it);
+                    it.getParent().getChildren().remove(it);
+                    it.getParent().getChildren().addAll(index, it.getChildren());
+                    for (ITree c: it.getChildren())
+                        c.setParent(it.getParent());
+                    i += it.getChildren().size() - 1;
+                }
+            }
+        }
+    }
+
+
+    private static void deleteDstNode(ITree dst, MappingStore mappingStore) {
+        for (int i = 0; i < dst.getChildren().size(); i++) {
+            ITree it = dst.getChild(i);
+            deleteDstNode(it, mappingStore);
+            if (mappingStore.isDstMapped(it) && hasSameTypeAndLabel(it, mappingStore.getSrcForDst(it))) {
+                if (it.getChildren().size() == 0) {
+                    it.getParent().getChildren().remove(it);
+                    i -= 1;
+                } else if (isSingleProgeny(it)) {
+                } else {
+                    int index = it.getParent().getChildPosition(it);
+                    it.getParent().getChildren().remove(it);
+                    it.getParent().getChildren().addAll(index, it.getChildren());
+                    for (ITree c: it.getChildren())
+                        c.setParent(it.getParent());
+                    i += it.getChildren().size() - 1;
+                }
+            }
+
+        }
+    }
+
+    private static boolean isSingleProgeny(ITree t) {
+        if (t.getChildren().size() == 0) {
+            return true;
+        } else if(t.getChildren().size() == 1) {
+            return isSingleProgeny(t.getChild(0));
+        } else {
+            return false;
+        }
+    }
+
+    /*private static void deleteDstNodeArchive(ITree dst, MappingStore mappingStore) {
+        for (int i = 0; i < dst.getChildren().size(); i++) {
+            ITree it = dst.getChild(i);
+            if (it.getChildren().size() == 0) {
+                if (mappingStore.isDstMapped(it) && it.getParent().getType().equals(mappingStore.getSrcForDst(it).getParent().getType())) {
+                    it.getParent().getChildren().remove(it);
+                    i -= 1;
+                }
+            } else {
+                deleteDstNode(it, mappingStore);
+                if (mappingStore.isDstMapped(it) && it.getChildren().size() == 0 && it.getParent().getType().equals(mappingStore.getSrcForDst(it).getParent().getType())) {
+                    it.getParent().getChildren().remove(it);
+                    i -= 1;
+                }
+            }
+        }
+    }*/
+
+    private static boolean hasSameTypeAndLabel(ITree t1, ITree t2) {
+        if (t1.hasSameTypeAndLabel(t2) && t1.getParent().hasSameTypeAndLabel(t2.getParent()))
+            return true;
+        return false;
+    }
+
+    private static void setSrcMappingID(ProjectTree src, MappingStore mappingStore) {
+        for (ITree s: src.getChildren()) {
+            ProjectTree pt = (ProjectTree)s;
+            if (s.getChildren().size() == 0) {
+                if (mappingStore.isSrcMapped(pt)) {
+                    int mappingID = PGenerator.generateNumber();
+                    pt.setMappingID(mappingID);
+                    ((ProjectTree)mappingStore.getDstForSrc(pt)).setMappingID(mappingID);
+                }
+            } else {
+                setSrcMappingID(pt, mappingStore);
+                if (mappingStore.isSrcMapped(pt)) {
+                    int mappingID = PGenerator.generateNumber();
+                    pt.setMappingID(mappingID);
+                    ((ProjectTree)mappingStore.getDstForSrc(pt)).setMappingID(mappingID);
+                }
+            }
+        }
+    }
+
+    private static void setDstMappingID(ProjectTree dst, MappingStore mappingStore) {
+        for (ITree d: dst.getChildren()) {
+            ProjectTree pt = (ProjectTree)d;
+            if (d.getChildren().size() == 0) {
+                if (mappingStore.isDstMapped(pt)) {
+                    int mappingID = PGenerator.generateNumber();
+                    pt.setMappingID(mappingID);
+                    ((ProjectTree)mappingStore.getSrcForDst(pt)).setMappingID(mappingID);
+                }
+            } else {
+                setDstMappingID(pt, mappingStore);
+                if (mappingStore.isDstMapped(pt)) {
+                    if (isAllChildrenMapped(pt) && isAllChildrenMapped(((ProjectTree) mappingStore.getSrcForDst(pt)))) {
+                        int mappingID = PGenerator.generateNumber();
+                        pt.setMappingID(mappingID);
+                        ((ProjectTree) mappingStore.getSrcForDst(pt)).setMappingID(mappingID);
+                    }
+                }
+            }
+        }
+    }
+
+    private static boolean isAllChildrenMapped(ProjectTree pt) {
+        /*for (ITree it: pt.getChildren()) {
+            ProjectTree p = (ProjectTree)it;
+            if (p.getChildren().size() == 0){
+                if (p.getMappingID() != 0) {}
+                else
+                    return false;
+            } else {
+                if (p.getMappingID() != 0 && isAllChildrenMapped(p)){}
+                else
+                    return false;
+            }
+        }*/
+        return true;
+    }
+
+    private static void fixMetrics(ITree tree) {
+        TreeVisitor.visitTree(tree, new TreeMetricComputer());
+    }
+
 
 }

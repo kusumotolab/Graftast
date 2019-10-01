@@ -34,6 +34,7 @@ import com.github.gumtreediff.tree.TreeContext;
 import com.github.gumtreediff.utils.Pair;
 import org.rendersnake.HtmlCanvas;
 import org.rendersnake.Renderable;
+import pgenerator.ProjectMatcher;
 import spark.Spark;
 
 import java.io.File;
@@ -111,14 +112,18 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
         get("/diff/:id", (request, response) -> {
             int id = Integer.parseInt(request.params(":id"));
             //Pair<File, File> pair = comparator.getModifiedFiles().get(id);
+            Pair<TreeContext, TreeContext> projectTreePair = this.getProjectTreeContextPair(new File(opts.src).getAbsolutePath(), new File(opts.dst).getAbsolutePath(), "java", "tmp/srcSource", "tmp/dstSource");
             Renderable view = new DiffView(
                     //pair.first, pair.second,
                     new File("tmp/srcSource"), new File("tmp/dstSource"),
                     //this.getTreeContext(pair.first.getAbsolutePath()),
-                    this.getProjectTreeContext(new File(opts.src).getAbsolutePath(), "tmp/srcSource"),
+                    //this.getProjectTreeContext(new File(opts.src).getAbsolutePath(), "tmp/srcSource"),
+                    projectTreePair.first,
                     //this.getTreeContext(pair.second.getAbsolutePath()),
-                    this.getProjectTreeContext(new File(opts.dst).getAbsolutePath(), "tmp/dstSource"),
+                    //this.getProjectTreeContext(new File(opts.dst).getAbsolutePath(), "tmp/dstSource"),
+                    projectTreePair.second,
                     getMatcher(),
+                    //new ProjectMatcher(),
                     new ChawatheScriptGenerator());
             return render(view);
         });
@@ -176,6 +181,10 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
 
     private static TreeContext getProjectTreeContext(String file, String tmp) throws IOException {
         return PGenerator.getProjectTreeContext(file, "java", tmp);
+    }
+
+    private static Pair<TreeContext, TreeContext> getProjectTreeContextPair(String src, String dst, String type, String srcTmp, String dstTmp) throws IOException {
+        return PGenerator.getProjectTreeContextPair(src, dst, type, srcTmp, dstTmp);
     }
 
     //TODO 適当にもほどがある
