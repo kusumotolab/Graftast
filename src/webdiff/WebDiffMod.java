@@ -35,6 +35,7 @@ import com.github.gumtreediff.utils.Pair;
 import org.rendersnake.HtmlCanvas;
 import org.rendersnake.Renderable;
 import pgenerator.ProjectMatcher;
+import pgenerator.SubtreeMatcher;
 import spark.Spark;
 
 import java.io.File;
@@ -113,7 +114,7 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
             int id = Integer.parseInt(request.params(":id"));
             //Pair<File, File> pair = comparator.getModifiedFiles().get(id);
             Pair<TreeContext, TreeContext> projectTreePair = this.getProjectTreeContextPair(new File(opts.src).getAbsolutePath(), new File(opts.dst).getAbsolutePath(), "java", "tmp/srcSource", "tmp/dstSource");
-            Renderable view = new DiffView(
+            Renderable view = new DiffViewMod(
                     //pair.first, pair.second,
                     new File("tmp/srcSource"), new File("tmp/dstSource"),
                     //this.getTreeContext(pair.first.getAbsolutePath()),
@@ -122,8 +123,8 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
                     //this.getTreeContext(pair.second.getAbsolutePath()),
                     //this.getProjectTreeContext(new File(opts.dst).getAbsolutePath(), "tmp/dstSource"),
                     projectTreePair.second,
-                    getMatcher(),
-                    //new ProjectMatcher(),
+                    //getMatcher(),
+                    new SubtreeMatcher(),
                     new ChawatheScriptGenerator());
             return render(view);
         });
