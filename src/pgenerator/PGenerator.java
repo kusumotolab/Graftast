@@ -4,6 +4,7 @@ import com.github.gumtreediff.actions.*;
 import com.github.gumtreediff.actions.model.Action;
 import com.github.gumtreediff.client.Run;
 import com.github.gumtreediff.gen.Generators;
+import com.github.gumtreediff.matchers.Mapping;
 import com.github.gumtreediff.matchers.MappingStore;
 import com.github.gumtreediff.matchers.Matcher;
 import com.github.gumtreediff.matchers.Matchers;
@@ -14,6 +15,7 @@ import webdiff.WebDiffMod;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -25,6 +27,8 @@ public class PGenerator {
 
     public static void main(String[] args) {
         Run.initGenerators();
+
+        long startTime = System.currentTimeMillis();
         getNoChangedFiles(args[0], args[1], "java");
 
         ITree srcProject;
@@ -43,11 +47,17 @@ public class PGenerator {
             return;
         }
 
-        long startTime = System.currentTimeMillis();
-
         Matcher m = Matchers.getInstance().getMatcher();
-        //MappingStore mappingStorePre = new ProjectMatcher().match(srcProject, dstProject);
-        MappingStore mappingStore = m.match(srcProject, dstProject);
+        MappingStore mappingStore = new SubtreeMatcher().match(srcProject, dstProject);
+        //MappingStore mappingStore = m.match(srcProject, dstProject);
+
+        Iterator<Mapping> iterator = mappingStore.iterator();
+        while (iterator.hasNext()) {
+            Mapping mapping = iterator.next();
+            if (mapping.first.getLabel().equals("KGenProgMain.java")) {
+                System.out.println("KGenProgMain");
+            }
+        }
 
         long endTime = System.currentTimeMillis();
         double time = (double)(endTime - startTime) / 1000;
@@ -60,7 +70,7 @@ public class PGenerator {
         for (Action action : editScript) {
             action.getName();
             //System.out.println(action.getName());
-            System.out.println(action.toString());
+            //System.out.println(action.toString());
         }
 
 
@@ -360,18 +370,7 @@ public class PGenerator {
             ITree it = src.getChild(i);
             deleteSrcNode(it, mappingStore);
             if (mappingStore.isSrcMapped(it) && hasSameTypeAndLabel(it, mappingStore.getDstForSrc(it))) {
-                if (it.getChildren().size() == 0) {
-                    it.getParent().getChildren().remove(it);
-                    i -= 1;
-                } else if (isSingleProgeny(it)) {
-                } else {
-                    int index = it.getParent().getChildPosition(it);
-                    it.getParent().getChildren().remove(it);
-                    it.getParent().getChildren().addAll(index, it.getChildren());
-                    for (ITree c: it.getChildren())
-                        c.setParent(it.getParent());
-                    i += it.getChildren().size() - 1;
-                }
+                i += treeRemoveOperation(it);
             }
         }
     }
@@ -382,20 +381,24 @@ public class PGenerator {
             ITree it = dst.getChild(i);
             deleteDstNode(it, mappingStore);
             if (mappingStore.isDstMapped(it) && hasSameTypeAndLabel(it, mappingStore.getSrcForDst(it))) {
-                if (it.getChildren().size() == 0) {
-                    it.getParent().getChildren().remove(it);
-                    i -= 1;
-                } else if (isSingleProgeny(it)) {
-                } else {
-                    int index = it.getParent().getChildPosition(it);
-                    it.getParent().getChildren().remove(it);
-                    it.getParent().getChildren().addAll(index, it.getChildren());
-                    for (ITree c: it.getChildren())
-                        c.setParent(it.getParent());
-                    i += it.getChildren().size() - 1;
-                }
+                i += treeRemoveOperation(it);
             }
+        }
+    }
 
+    private static int treeRemoveOperation(ITree it) {
+        if (it.getChildren().size() == 0) {
+            it.getParent().getChildren().remove(it);
+            return -1;
+        } else if (isSingleProgeny(it)) {
+            return 0;
+        } else {
+            int index = it.getParent().getChildPosition(it);
+            it.getParent().getChildren().remove(it);
+            it.getParent().getChildren().addAll(index, it.getChildren());
+            for (ITree c: it.getChildren())
+                c.setParent(it.getParent());
+            return  it.getChildren().size() - 1;
         }
     }
 
