@@ -2,6 +2,7 @@ package pgenerator;
 
 import com.github.gumtreediff.actions.*;
 import com.github.gumtreediff.actions.model.Action;
+import com.github.gumtreediff.actions.model.Move;
 import com.github.gumtreediff.client.Run;
 import com.github.gumtreediff.gen.Generators;
 import com.github.gumtreediff.matchers.Mapping;
@@ -15,9 +16,7 @@ import webdiff.WebDiffMod;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 
 public class PGenerator {
@@ -48,31 +47,56 @@ public class PGenerator {
         }
 
         Matcher m = Matchers.getInstance().getMatcher();
+        //MappingStore mappingStore = new MappingStore(srcProject, dstProject);
+        //new ProjectMatcher().match(srcProject, dstProject, mappingStore);
         MappingStore mappingStore = new SubtreeMatcher().match(srcProject, dstProject);
         //MappingStore mappingStore = m.match(srcProject, dstProject);
-
-        Iterator<Mapping> iterator = mappingStore.iterator();
-        while (iterator.hasNext()) {
-            Mapping mapping = iterator.next();
-            if (mapping.first.getLabel().equals("KGenProgMain.java")) {
-                System.out.println("KGenProgMain");
-            }
-        }
 
         long endTime = System.currentTimeMillis();
         double time = (double)(endTime - startTime) / 1000;
 
-        System.out.println("Calculate Time: " + time);
+        //System.out.println("Calculate Time: " + time);
 
         EditScriptGenerator editScriptGenerator;
         editScriptGenerator = new ChawatheScriptGenerator();
         EditScript editScript = editScriptGenerator.computeActions(mappingStore);
+        /*PrintWriter printWriter;
+        try {
+            //printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File("experiment/moveDistribution/kGenProg.csv"))));
+            //printWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(args[2]))));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }*/
+        int moveOverFiles = 0;
+        int[] moveCount = new int[100 + 1];
         for (Action action : editScript) {
             action.getName();
+            //printWriter.println(action.toString());
+            //printWriter.println(action.getName());
             //System.out.println(action.getName());
+            if (action instanceof Move) {
+                Move mv = (Move)action;
+                String srcFileName = getAffiliatedFileName(mv.getNode());
+                String dstFileName = getAffiliatedFileName(mv.getParent());
+                if (!srcFileName.equals(dstFileName)) {
+                    moveOverFiles += 1;
+                    int size = mv.getNode().getMetrics().size;
+                    if (size >= 100)
+                        moveCount[100] += 1;
+                    else
+                        moveCount[size] += 1;
+                    if (size == 2)
+                        System.out.println(mv.toString());
+                }
+            }
             //System.out.println(action.toString());
         }
+        System.out.println("moveOverFiles: " + moveOverFiles);
 
+        for (int count: moveCount) {
+            System.out.println(count);
+        }
 
         //WebDiffのテスト→実行可能
         /*String[] argsWebDiff = {"./testData/1/Main.java", "./testData/2/Main.java"};
@@ -80,10 +104,9 @@ public class PGenerator {
         wd.run();*/
 
         //自作WebDiff
-        String[] argsWebDiffMod = {args[0], args[1]};
+        /*String[] argsWebDiffMod = {args[0], args[1]};
         WebDiffMod wdm = new WebDiffMod(argsWebDiffMod);
-        wdm.run();
-
+        wdm.run();*/
     }
 
 
@@ -143,8 +166,8 @@ public class PGenerator {
             projectTree.addChild(it);
         }
         projectTree.setLength(totalLength);
-        return convertProjectTree(projectTree, new ProjectTree(TypeSet.type("CompilationUnit")));
-        //return projectTree;
+        //return convertProjectTree(projectTree, new ProjectTree(TypeSet.type("CompilationUnit")));
+        return projectTree;
     }
 
     /**
@@ -277,9 +300,10 @@ public class PGenerator {
      * @param dstDir 比較先プロジェクトのディレクトリ
      * @param type ファイルの種類
      */
-    private static void getNoChangedFiles(String srcDir, String dstDir, String type) {
+    public static void getNoChangedFiles(String srcDir, String dstDir, String type) {
         List<File> srcFiles = findAllFiles(new File(srcDir), type);
         List<File> dstFiles = findAllFiles(new File(dstDir), type);
+        noChangedFiles = new LinkedList<>();
         Runtime runtime = Runtime.getRuntime();
         for (File src: srcFiles) {
             for (File dst: dstFiles) {
@@ -301,11 +325,7 @@ public class PGenerator {
                                 dstFiles.remove(dst);
                                 break;
                             }
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (NullPointerException e) {
+                        } catch (InterruptedException | IOException | NullPointerException e) {
                             e.printStackTrace();
                         }
                     } else {
@@ -333,20 +353,29 @@ public class PGenerator {
         return false;
     }
 
+    public static Pair<ITree, ITree> getProjectTreePair(String src, String dst, String type) throws IOException {
+        ITree srcTree = getProjectTree(src, type);
+        ITree dstTree = getProjectTree(dst, type);
+        return new Pair<>(srcTree, dstTree);
+    }
+
     public static Pair<ITree, ITree> getProjectTreePair(String src, String dst, String type, String srcTmp, String dstTmp) throws IOException {
         ITree srcTree = getProjectTree(src, type, srcTmp);
         ITree dstTree = getProjectTree(dst, type, dstTmp);
-        for (ITree sit : srcTree.getChildren()) {
+        /*for (ITree sit : srcTree.getChildren()) {
             for (ITree dit : dstTree.getChildren()) {
                 if (sit.getLabel().equals(dit.getLabel())) {
                     Matcher m = Matchers.getInstance().getMatcher();
                     MappingStore mappingStore = m.match(sit, dit); //先に同じファイル同士でマッチング
-                    deleteSrcNode(sit, mappingStore);
-                    deleteDstNode(dit, mappingStore);
+                    double sim = (double)mappingStore.size() / (double)getDstMapSize(mappingStore);
+                    if (0.9< sim && sim < 1.1) {
+                        deleteSrcNode(sit, mappingStore);
+                        deleteDstNode(dit, mappingStore);
+                    }
                     //setDstMappingID((ProjectTree)dit, mappingStore);
                 }
             }
-        }
+        }*/
         fixMetrics(srcTree);
         fixMetrics(dstTree);
         return new Pair<>(srcTree, dstTree);
@@ -405,12 +434,19 @@ public class PGenerator {
     private static boolean isSingleProgeny(ITree t) {
         if (t.getChildren().size() == 0) {
             return true;
-        } else if(t.getChildren().size() == 1) {
+        } else if (t.getChildren().size() == 1) {
             return isSingleProgeny(t.getChild(0));
         } else {
             return false;
         }
     }
+
+    private static void removeFileNameInfo(ITree it) {
+        for (ITree t: it.getChildren()) {
+            t.setLabel("");
+        }
+    }
+
 
     /*private static void deleteDstNodeArchive(ITree dst, MappingStore mappingStore) {
         for (int i = 0; i < dst.getChildren().size(); i++) {
@@ -468,34 +504,35 @@ public class PGenerator {
             } else {
                 setDstMappingID(pt, mappingStore);
                 if (mappingStore.isDstMapped(pt)) {
-                    if (isAllChildrenMapped(pt) && isAllChildrenMapped(((ProjectTree) mappingStore.getSrcForDst(pt)))) {
-                        int mappingID = PGenerator.generateNumber();
-                        pt.setMappingID(mappingID);
-                        ((ProjectTree) mappingStore.getSrcForDst(pt)).setMappingID(mappingID);
-                    }
+                    int mappingID = PGenerator.generateNumber();
+                    pt.setMappingID(mappingID);
+                    ((ProjectTree) mappingStore.getSrcForDst(pt)).setMappingID(mappingID);
                 }
             }
         }
     }
 
-    private static boolean isAllChildrenMapped(ProjectTree pt) {
-        /*for (ITree it: pt.getChildren()) {
-            ProjectTree p = (ProjectTree)it;
-            if (p.getChildren().size() == 0){
-                if (p.getMappingID() != 0) {}
-                else
-                    return false;
-            } else {
-                if (p.getMappingID() != 0 && isAllChildrenMapped(p)){}
-                else
-                    return false;
-            }
-        }*/
-        return true;
+    private static int getDstMapSize(MappingStore ms) {
+        Iterator<Mapping> iterator = ms.iterator();
+        Set set = new HashSet();
+        while (iterator.hasNext()) {
+            Mapping element = iterator.next();
+            set.add(ms.getSrcForDst(element.second));
+        }
+        return set.size();
     }
 
     private static void fixMetrics(ITree tree) {
         TreeVisitor.visitTree(tree, new TreeMetricComputer());
+    }
+
+    public static String getAffiliatedFileName(ITree it) {
+        ITree parent = it.getParent();
+        while (!parent.isRoot() && !(parent.getParent() instanceof FakeTree)) {
+            it = parent;
+            parent = parent.getParent();
+        }
+        return it.getLabel();
     }
 
 
