@@ -34,8 +34,6 @@ import com.github.gumtreediff.tree.TreeContext;
 import com.github.gumtreediff.utils.Pair;
 import org.rendersnake.HtmlCanvas;
 import org.rendersnake.Renderable;
-import pgenerator.ProjectMatcher;
-import pgenerator.SubtreeMatcher;
 import spark.Spark;
 
 import java.io.File;
@@ -113,8 +111,8 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
         get("/diff/:id", (request, response) -> {
             int id = Integer.parseInt(request.params(":id"));
             //Pair<File, File> pair = comparator.getModifiedFiles().get(id);
-            Pair<TreeContext, TreeContext> projectTreePair = this.getProjectTreeContextPair(new File(opts.src).getAbsolutePath(), new File(opts.dst).getAbsolutePath(), "java", "tmp/srcSource", "tmp/dstSource");
-            Renderable view = new DiffViewMod(
+            Pair<TreeContext, TreeContext> projectTreePair = new PGenerator(opts.src, opts.dst).getProjectTreeContextPair(opts.src, opts.dst, "java", "tmp/srcSource", "tmp/dstSource");
+            Renderable view = new DiffView(
                     //pair.first, pair.second,
                     new File("tmp/srcSource"), new File("tmp/dstSource"),
                     //this.getTreeContext(pair.first.getAbsolutePath()),
@@ -123,8 +121,8 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
                     //this.getTreeContext(pair.second.getAbsolutePath()),
                     //this.getProjectTreeContext(new File(opts.dst).getAbsolutePath(), "tmp/dstSource"),
                     projectTreePair.second,
-                    //getMatcher(),
-                    new SubtreeMatcher(),
+                    getMatcher(),
+                    //new ProjectMatcher(),
                     new ChawatheScriptGenerator());
             return render(view);
         });
@@ -138,14 +136,12 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
             Pair<File, File> pair = comparator.getModifiedFiles().get(id);
             //return readFile(pair.first.getAbsolutePath(), Charset.defaultCharset());
             return readFile("tmp/srcSource", Charset.defaultCharset());
-            //return readFile(getTekitoAbsolutePath(pair.first), Charset.defaultCharset());
         });
         get("/right/:id", (request, response) -> {
             int id = Integer.parseInt(request.params(":id"));
             Pair<File, File> pair = comparator.getModifiedFiles().get(id);
             //return readFile(pair.second.getAbsolutePath(), Charset.defaultCharset());
             return readFile("tmp/dstSource", Charset.defaultCharset());
-            //return readFile(getTekitoAbsolutePath(pair.second), Charset.defaultCharset());
         });
         get("/script/:id", (request, response) -> {
             int id = Integer.parseInt(request.params(":id"));
@@ -173,51 +169,6 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
     private static String readFile(String path, Charset encoding)  throws IOException {
         byte[] encoded = Files.readAllBytes(Paths.get(path));
         return new String(encoded, encoding);
-    }
-
-    private static TreeContext getProjectTreeContext(String file) throws IOException {
-        //TODO ハードコートをなんとかする
-        return PGenerator.getProjectTreeContext(file, "java");
-    }
-
-    private static TreeContext getProjectTreeContext(String file, String tmp) throws IOException {
-        return PGenerator.getProjectTreeContext(file, "java", tmp);
-    }
-
-    private static Pair<TreeContext, TreeContext> getProjectTreeContextPair(String src, String dst, String type, String srcTmp, String dstTmp) throws IOException {
-        return PGenerator.getProjectTreeContextPair(src, dst, type, srcTmp, dstTmp);
-    }
-
-    //TODO 適当にもほどがある
-
-    /**
-     * あるディレクトリ内の適当なファイルを1こもってくる
-     * @param path
-     * @return
-     */
-    private static String getTekitoAbsolutePath(File path) {
-        File[] files = path.listFiles();
-        for (File file: files) {
-            if (!file.isDirectory()) {
-                if (file.getPath().endsWith("java")){
-                    return file.getAbsolutePath();
-                }
-            }
-        }
-        return "";
-    }
-
-    private static String getTekitoAbsolutePath(String path) {
-        File f = new File(path);
-        File[] files = f.listFiles();
-        for (File file: files) {
-            if (!file.isDirectory()) {
-                if (file.getPath().endsWith("java")){
-                    return file.getAbsolutePath();
-                }
-            }
-        }
-        return "";
     }
 
 }

@@ -24,17 +24,20 @@ public class ProjectMatcher implements Matcher {
                 if (sit.getLabel().equals(dit.getLabel())) {
                     mappingStore.addMapping(sit, dit);
                     Matcher m = Matchers.getInstance().getMatcher();
-                    MappingStore ms = m.match(sit, dit); //先に同じファイル同士でマッチング]
-                    Iterator<Mapping> iterator = ms.iterator();
+                    //MappingStore ms = m.match(sit, dit, mappingStore); //先に同じファイル同士でマッチング]
+                    mappingStore = m.match(sit, dit, mappingStore);
+                    /*Iterator<Mapping> iterator = ms.iterator();
                     while (iterator.hasNext()) {
                         Mapping tmp = iterator.next();
                         mappingStore.addMapping((ITree)tmp.first, (ITree)tmp.second);
-                    }
+                    }*/
                     //deleteSrcNode(sit, mappingStore);
                     //deleteDstNode(dit, mappingStore);
                 }
             }
         }
+        Matcher m = Matchers.getInstance().getMatcher();
+        mappingStore = m.match(src, dst, mappingStore);
         return mappingStore;
     }
 }

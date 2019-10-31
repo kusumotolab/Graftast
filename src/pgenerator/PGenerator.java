@@ -2,6 +2,7 @@ package pgenerator;
 
 import com.github.gumtreediff.actions.*;
 import com.github.gumtreediff.actions.model.Action;
+import com.github.gumtreediff.actions.model.Move;
 import com.github.gumtreediff.client.Run;
 import com.github.gumtreediff.gen.Generators;
 import com.github.gumtreediff.matchers.Mapping;
@@ -15,64 +16,37 @@ import webdiff.WebDiffMod;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 
 public class PGenerator {
 
-    private static List<File> noChangedFiles = new LinkedList<>();
+    private List<File> noChangedFiles = new LinkedList<>();
     static int num = 1;
 
-    public static void main(String[] args) {
+    public PGenerator(String srcPath, String dstPath) {
         Run.initGenerators();
+        getNoChangedFiles(srcPath, dstPath, "java");
+    }
 
+    public static void main(String[] args) {
+        PGenerator pGenerator = new PGenerator(args[0], args[1]);
+        pGenerator.start(args);
+    }
+
+    public void start(String[] args) {
         long startTime = System.currentTimeMillis();
-        getNoChangedFiles(args[0], args[1], "java");
 
-        ITree srcProject;
-        ITree dstProject;
-        Pair<ITree, ITree> projectTrees;
         try {
-            //srcProject = Generators.getInstance().getTree("./testData/1/Main.java").getRoot();
-            //dstProject = Generators.getInstance().getTree("./testData/2/Main.java").getRoot();
-            //srcProject = getProjectTree(args[0], "java", "tmp/srcSource");
-            //dstProject = getProjectTree(args[1], "java", "tmp/dstSource");
-            projectTrees = getProjectTreePair(args[0], args[1], "java", "tmp/srcSource", "tmp/dstSource");
-            srcProject = projectTrees.first;
-            dstProject = projectTrees.second;
-        } catch(IOException e) {
+            calculateEditScript(args[0], args[1]);
+        } catch (IOException e) {
             e.printStackTrace();
             return;
         }
 
-        Matcher m = Matchers.getInstance().getMatcher();
-        MappingStore mappingStore = new SubtreeMatcher().match(srcProject, dstProject);
-        //MappingStore mappingStore = m.match(srcProject, dstProject);
-
-        Iterator<Mapping> iterator = mappingStore.iterator();
-        while (iterator.hasNext()) {
-            Mapping mapping = iterator.next();
-            if (mapping.first.getLabel().equals("KGenProgMain.java")) {
-                System.out.println("KGenProgMain");
-            }
-        }
-
         long endTime = System.currentTimeMillis();
         double time = (double)(endTime - startTime) / 1000;
-
         System.out.println("Calculate Time: " + time);
-
-        EditScriptGenerator editScriptGenerator;
-        editScriptGenerator = new ChawatheScriptGenerator();
-        EditScript editScript = editScriptGenerator.computeActions(mappingStore);
-        for (Action action : editScript) {
-            action.getName();
-            //System.out.println(action.getName());
-            //System.out.println(action.toString());
-        }
-
 
         //WebDiffのテスト→実行可能
         /*String[] argsWebDiff = {"./testData/1/Main.java", "./testData/2/Main.java"};
@@ -83,7 +57,23 @@ public class PGenerator {
         String[] argsWebDiffMod = {args[0], args[1]};
         WebDiffMod wdm = new WebDiffMod(argsWebDiffMod);
         wdm.run();
+    }
 
+    public EditScript calculateEditScript(String srcPath, String dstPath) throws IOException{
+        Pair<ITree, ITree> projectTrees = getProjectTreePair(srcPath, dstPath, "java", "tmp/srcSource", "tmp/dstSource");
+        return calculateEditScript(projectTrees);
+    }
+
+    public EditScript calculateEditScript(Pair<ITree, ITree> projectTrees) {
+        ITree srcProject = projectTrees.first;
+        ITree dstProject = projectTrees.second;
+
+        Matcher m = Matchers.getInstance().getMatcher();
+        MappingStore mappingStore = new SubtreeMatcher().match(srcProject, dstProject);
+
+        EditScriptGenerator editScriptGenerator;
+        editScriptGenerator = new ChawatheScriptGenerator();
+        return editScriptGenerator.computeActions(mappingStore);
     }
 
 
@@ -95,7 +85,7 @@ public class PGenerator {
      * @param type ファイル拡張子
      * @return ファイル名のList(String)
      */
-    private static List<File> findAllFiles(File rootDir, String type) {
+    private List<File> findAllFiles(File rootDir, String type) {
         List<File> files = new LinkedList<>();
         File[] rootFiles = rootDir.listFiles();
         if (rootFiles == null)
@@ -118,7 +108,7 @@ public class PGenerator {
      * @return プロジェクト全体（指定ディレクトリ以下）のITree
      * @throws IOException
      */
-    public static ITree getProjectTree(String dir, String type) throws IOException {
+    public ITree getProjectTree(String dir, String type) throws IOException {
         List<File> files = findAllFiles(new File(dir), type);
         ITree projectTree = new ProjectTree(TypeSet.type("CompilationUnit")); //土台となる木の元
         int totalLength = 0; //プロジェクト全体のLengthを記録．処理中は累積の長さになってる
@@ -143,8 +133,8 @@ public class PGenerator {
             projectTree.addChild(it);
         }
         projectTree.setLength(totalLength);
-        return convertProjectTree(projectTree, new ProjectTree(TypeSet.type("CompilationUnit")));
-        //return projectTree;
+        //return convertProjectTree(projectTree, new ProjectTree(TypeSet.type("CompilationUnit")));
+        return projectTree;
     }
 
     /**
@@ -153,7 +143,7 @@ public class PGenerator {
      * @param pt 土台となる木
      * @return
      */
-    private static ITree convertProjectTree(ITree iTree, ITree pt) {
+    private ITree convertProjectTree(ITree iTree, ITree pt) {
         for (ITree it: iTree.getChildren()) {
             if (it.getChildren().size() == 0) {
                 ProjectTree projectTree = new ProjectTree(it.getType());
@@ -185,7 +175,7 @@ public class PGenerator {
      * @return プロジェクト全体（指定ディレクトリ以下）のITree
      * @throws IOException
      */
-    public static ITree getProjectTree(String dir, String type, String tmp) throws IOException {
+    public ITree getProjectTree(String dir, String type, String tmp) throws IOException {
         ITree projectTree = getProjectTree(dir, type);
         writeProjectSource(tmp, dir, type);
         return projectTree;
@@ -196,7 +186,7 @@ public class PGenerator {
      * @param iTree
      * @param length
      */
-    private static void fixTreePosLength(ITree iTree, int length) {
+    private void fixTreePosLength(ITree iTree, int length) {
         for (ITree it: iTree.getChildren()) {
             if (it.getChildren().size() == 0) { //葉ノード
                 it.setPos(it.getPos() + length);
@@ -214,7 +204,7 @@ public class PGenerator {
      * @return プロジェクト全体（指定ディレクトリ以下）のTreeContext
      * @throws IOException
      */
-    public static TreeContext getProjectTreeContext(String dir, String type) throws IOException {
+    public TreeContext getProjectTreeContext(String dir, String type) throws IOException {
         TreeContext projectTree = new TreeContext();
         projectTree.setRoot(getProjectTree(dir, type)); //TreeContextのrootにITreeをセット
         return projectTree;
@@ -230,7 +220,7 @@ public class PGenerator {
      * @return プロジェクト全体（指定ディレクトリ以下）のTreeContext
      * @throws IOException
      */
-    public static TreeContext getProjectTreeContext(String dir, String type, String tmp) throws IOException {
+    public TreeContext getProjectTreeContext(String dir, String type, String tmp) throws IOException {
         writeProjectSource(tmp, dir, type);
         return getProjectTreeContext(dir, type);
     }
@@ -243,7 +233,7 @@ public class PGenerator {
      * @param type ファイルの種類
      * @throws IOException
      */
-    private static void writeProjectSource(String fileName, String rootDir, String type) throws IOException {
+    private void writeProjectSource(String fileName, String rootDir, String type) throws IOException {
         if (Files.exists(Paths.get(fileName))) {
             Files.delete(Paths.get(fileName));
         }
@@ -277,7 +267,7 @@ public class PGenerator {
      * @param dstDir 比較先プロジェクトのディレクトリ
      * @param type ファイルの種類
      */
-    private static void getNoChangedFiles(String srcDir, String dstDir, String type) {
+    private void getNoChangedFiles(String srcDir, String dstDir, String type) {
         List<File> srcFiles = findAllFiles(new File(srcDir), type);
         List<File> dstFiles = findAllFiles(new File(dstDir), type);
         Runtime runtime = Runtime.getRuntime();
@@ -301,11 +291,7 @@ public class PGenerator {
                                 dstFiles.remove(dst);
                                 break;
                             }
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (NullPointerException e) {
+                        } catch (InterruptedException | IOException | NullPointerException e) {
                             e.printStackTrace();
                         }
                     } else {
@@ -323,7 +309,7 @@ public class PGenerator {
      * @param file 変更されているか調べたいファイル
      * @return 変更されていなければtrue, 変更されていればfalse
      */
-    private static boolean isUnChangedFile(File file) {
+    private boolean isUnChangedFile(File file) {
         String fileName = file.getName();
         for (File n :noChangedFiles) {
             String name = n.getName();
@@ -333,26 +319,35 @@ public class PGenerator {
         return false;
     }
 
-    public static Pair<ITree, ITree> getProjectTreePair(String src, String dst, String type, String srcTmp, String dstTmp) throws IOException {
+    public Pair<ITree, ITree> getProjectTreePair(String src, String dst, String type) throws IOException {
+        ITree srcTree = getProjectTree(src, type);
+        ITree dstTree = getProjectTree(dst, type);
+        return new Pair<>(srcTree, dstTree);
+    }
+
+    public Pair<ITree, ITree> getProjectTreePair(String src, String dst, String type, String srcTmp, String dstTmp) throws IOException {
         ITree srcTree = getProjectTree(src, type, srcTmp);
         ITree dstTree = getProjectTree(dst, type, dstTmp);
-        for (ITree sit : srcTree.getChildren()) {
+        /*for (ITree sit : srcTree.getChildren()) {
             for (ITree dit : dstTree.getChildren()) {
                 if (sit.getLabel().equals(dit.getLabel())) {
                     Matcher m = Matchers.getInstance().getMatcher();
                     MappingStore mappingStore = m.match(sit, dit); //先に同じファイル同士でマッチング
-                    deleteSrcNode(sit, mappingStore);
-                    deleteDstNode(dit, mappingStore);
+                    double sim = (double)mappingStore.size() / (double)getDstMapSize(mappingStore);
+                    if (0.9< sim && sim < 1.1) {
+                        deleteSrcNode(sit, mappingStore);
+                        deleteDstNode(dit, mappingStore);
+                    }
                     //setDstMappingID((ProjectTree)dit, mappingStore);
                 }
             }
-        }
+        }*/
         fixMetrics(srcTree);
         fixMetrics(dstTree);
         return new Pair<>(srcTree, dstTree);
     }
 
-    public static Pair<TreeContext, TreeContext> getProjectTreeContextPair(String src, String dst, String type, String srcTmp, String dstTmp) throws IOException {
+    public Pair<TreeContext, TreeContext> getProjectTreeContextPair(String src, String dst, String type, String srcTmp, String dstTmp) throws IOException {
         Pair<ITree, ITree> projectTreePair = getProjectTreePair(src, dst, type, srcTmp, dstTmp);
         TreeContext srcTree = new TreeContext();
         TreeContext dstTree = new TreeContext();
@@ -365,137 +360,18 @@ public class PGenerator {
         return num++;
     }
 
-    private static void deleteSrcNode(ITree src, MappingStore mappingStore) {
-        for (int i = 0; i < src.getChildren().size(); i++) {
-            ITree it = src.getChild(i);
-            deleteSrcNode(it, mappingStore);
-            if (mappingStore.isSrcMapped(it) && hasSameTypeAndLabel(it, mappingStore.getDstForSrc(it))) {
-                i += treeRemoveOperation(it);
-            }
-        }
-    }
-
-
-    private static void deleteDstNode(ITree dst, MappingStore mappingStore) {
-        for (int i = 0; i < dst.getChildren().size(); i++) {
-            ITree it = dst.getChild(i);
-            deleteDstNode(it, mappingStore);
-            if (mappingStore.isDstMapped(it) && hasSameTypeAndLabel(it, mappingStore.getSrcForDst(it))) {
-                i += treeRemoveOperation(it);
-            }
-        }
-    }
-
-    private static int treeRemoveOperation(ITree it) {
-        if (it.getChildren().size() == 0) {
-            it.getParent().getChildren().remove(it);
-            return -1;
-        } else if (isSingleProgeny(it)) {
-            return 0;
-        } else {
-            int index = it.getParent().getChildPosition(it);
-            it.getParent().getChildren().remove(it);
-            it.getParent().getChildren().addAll(index, it.getChildren());
-            for (ITree c: it.getChildren())
-                c.setParent(it.getParent());
-            return  it.getChildren().size() - 1;
-        }
-    }
-
-    private static boolean isSingleProgeny(ITree t) {
-        if (t.getChildren().size() == 0) {
-            return true;
-        } else if(t.getChildren().size() == 1) {
-            return isSingleProgeny(t.getChild(0));
-        } else {
-            return false;
-        }
-    }
-
-    /*private static void deleteDstNodeArchive(ITree dst, MappingStore mappingStore) {
-        for (int i = 0; i < dst.getChildren().size(); i++) {
-            ITree it = dst.getChild(i);
-            if (it.getChildren().size() == 0) {
-                if (mappingStore.isDstMapped(it) && it.getParent().getType().equals(mappingStore.getSrcForDst(it).getParent().getType())) {
-                    it.getParent().getChildren().remove(it);
-                    i -= 1;
-                }
-            } else {
-                deleteDstNode(it, mappingStore);
-                if (mappingStore.isDstMapped(it) && it.getChildren().size() == 0 && it.getParent().getType().equals(mappingStore.getSrcForDst(it).getParent().getType())) {
-                    it.getParent().getChildren().remove(it);
-                    i -= 1;
-                }
-            }
-        }
-    }*/
-
-    private static boolean hasSameTypeAndLabel(ITree t1, ITree t2) {
-        if (t1.hasSameTypeAndLabel(t2) && t1.getParent().hasSameTypeAndLabel(t2.getParent()))
-            return true;
-        return false;
-    }
-
-    private static void setSrcMappingID(ProjectTree src, MappingStore mappingStore) {
-        for (ITree s: src.getChildren()) {
-            ProjectTree pt = (ProjectTree)s;
-            if (s.getChildren().size() == 0) {
-                if (mappingStore.isSrcMapped(pt)) {
-                    int mappingID = PGenerator.generateNumber();
-                    pt.setMappingID(mappingID);
-                    ((ProjectTree)mappingStore.getDstForSrc(pt)).setMappingID(mappingID);
-                }
-            } else {
-                setSrcMappingID(pt, mappingStore);
-                if (mappingStore.isSrcMapped(pt)) {
-                    int mappingID = PGenerator.generateNumber();
-                    pt.setMappingID(mappingID);
-                    ((ProjectTree)mappingStore.getDstForSrc(pt)).setMappingID(mappingID);
-                }
-            }
-        }
-    }
-
-    private static void setDstMappingID(ProjectTree dst, MappingStore mappingStore) {
-        for (ITree d: dst.getChildren()) {
-            ProjectTree pt = (ProjectTree)d;
-            if (d.getChildren().size() == 0) {
-                if (mappingStore.isDstMapped(pt)) {
-                    int mappingID = PGenerator.generateNumber();
-                    pt.setMappingID(mappingID);
-                    ((ProjectTree)mappingStore.getSrcForDst(pt)).setMappingID(mappingID);
-                }
-            } else {
-                setDstMappingID(pt, mappingStore);
-                if (mappingStore.isDstMapped(pt)) {
-                    if (isAllChildrenMapped(pt) && isAllChildrenMapped(((ProjectTree) mappingStore.getSrcForDst(pt)))) {
-                        int mappingID = PGenerator.generateNumber();
-                        pt.setMappingID(mappingID);
-                        ((ProjectTree) mappingStore.getSrcForDst(pt)).setMappingID(mappingID);
-                    }
-                }
-            }
-        }
-    }
-
-    private static boolean isAllChildrenMapped(ProjectTree pt) {
-        /*for (ITree it: pt.getChildren()) {
-            ProjectTree p = (ProjectTree)it;
-            if (p.getChildren().size() == 0){
-                if (p.getMappingID() != 0) {}
-                else
-                    return false;
-            } else {
-                if (p.getMappingID() != 0 && isAllChildrenMapped(p)){}
-                else
-                    return false;
-            }
-        }*/
-        return true;
-    }
-
-    private static void fixMetrics(ITree tree) {
+    private void fixMetrics(ITree tree) {
         TreeVisitor.visitTree(tree, new TreeMetricComputer());
+    }
+
+    //Tree側に実装すべき機能
+    public String getAffiliatedFileName(ITree it) {
+        ITree parent = it.getParent();
+        while (!parent.isRoot() && !(parent.getParent() instanceof FakeTree)) {
+            it = parent;
+            parent = parent.getParent();
+        }
+        return it.getLabel();
     }
 
 
