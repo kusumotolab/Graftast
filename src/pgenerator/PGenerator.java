@@ -14,6 +14,7 @@ import com.github.gumtreediff.utils.Pair;
 import webdiff.WebDiffMod;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
@@ -279,7 +280,7 @@ public class PGenerator {
                     try {
                         process = runtime.exec(command);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        //diffコマンドがないとき
                     }
                     if (process != null) {
                         try {
@@ -297,10 +298,27 @@ public class PGenerator {
                     } else {
                         //diffが実行できなかった時
                         //TODO diffっぽいメソッドを作る
+                        try {
+                            String srcCode = readFile(src.getAbsolutePath(), Charset.defaultCharset());
+                            String dstCode = readFile(dst.getAbsolutePath(), Charset.defaultCharset());
+                            if(srcCode.equals(dstCode)) {
+                                noChangedFiles.add(src);
+                                dstFiles.remove(dst);
+                                break;
+                            }
+                        } catch (IOException e) {
+                            //読み込みに失敗したらそのまま続ける
+                            continue;
+                        }
                     }
                 }
             }
         }
+    }
+
+    private String readFile(String path, Charset encoding)  throws IOException {
+        byte[] encoded = Files.readAllBytes(Paths.get(path));
+        return new String(encoded, encoding);
     }
 
 

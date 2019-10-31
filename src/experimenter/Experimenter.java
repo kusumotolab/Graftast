@@ -8,8 +8,13 @@ import com.github.gumtreediff.utils.Pair;
 import pgenerator.PGenerator;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class Experimenter {
 
@@ -62,17 +67,20 @@ public class Experimenter {
     private void compareAllVersions(String[] args) {
         if (args.length >= 6 && args[5].equals("-m")){
             //マルチスレッド
-            Thread[] threads = new Thread[commitLogSize];
+            ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+            List<Future<?>> futureList = new ArrayList<>();
             for (int i = commitLogs.size() - 1; i > 0; i--) {
                 Compare compare = new Compare(args, commitLogs, i);
-                threads[i] = new Thread(compare);
-                threads[i].start();
-                System.out.println("Thread start: " + i);
+                Future<?> future = executorService.submit(compare);
+                futureList.add(future);
             }
-            for (int i = commitLogs.size() - 1; i > 0; i--) {
+            executorService.shutdown();
+            for (Future<?> future : futureList) {
                 try {
-                    threads[i].join();
+                    future.get();
                 } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
                     e.printStackTrace();
                 }
             }
