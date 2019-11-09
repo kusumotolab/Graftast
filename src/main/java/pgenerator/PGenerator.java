@@ -1,11 +1,11 @@
 package pgenerator;
 
-import com.github.gumtreediff.actions.*;
-import com.github.gumtreediff.actions.model.Action;
-import com.github.gumtreediff.actions.model.Move;
+import com.github.gumtreediff.actions.ChawatheScriptGenerator;
+import com.github.gumtreediff.actions.EditScript;
+import com.github.gumtreediff.actions.EditScriptGenerator;
 import com.github.gumtreediff.client.Run;
 import com.github.gumtreediff.gen.Generators;
-import com.github.gumtreediff.matchers.Mapping;
+import com.github.gumtreediff.gen.jdt.JdtTreeGenerator;
 import com.github.gumtreediff.matchers.MappingStore;
 import com.github.gumtreediff.matchers.Matcher;
 import com.github.gumtreediff.matchers.Matchers;
@@ -16,18 +16,26 @@ import webdiff.WebDiffMod;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 
 public class PGenerator {
 
-    private List<File> noChangedFiles = new LinkedList<>();
-    static int num = 1;
+    private List<String> noChangedFiles = new LinkedList<>();
 
     public PGenerator(String srcPath, String dstPath) {
         Run.initGenerators();
         getNoChangedFiles(srcPath, dstPath, "java");
+    }
+
+    public PGenerator(List<FileContainer> src, List<FileContainer> dst) {
+        Run.initGenerators();
+        getNoChangeFiles(src, dst);
     }
 
     public static void main(String[] args) {
@@ -288,7 +296,7 @@ public class PGenerator {
                             InputStream is = process.getInputStream();
                             BufferedReader br = new BufferedReader(new InputStreamReader(is));
                             if (br.readLine() == null) { //diffの出力が空 => 同じファイル
-                                noChangedFiles.add(src);
+                                noChangedFiles.add(src.getName());
                                 dstFiles.remove(dst);
                                 break;
                             }
@@ -301,8 +309,8 @@ public class PGenerator {
                         try {
                             String srcCode = readFile(src.getAbsolutePath(), Charset.defaultCharset());
                             String dstCode = readFile(dst.getAbsolutePath(), Charset.defaultCharset());
-                            if(srcCode.equals(dstCode)) {
-                                noChangedFiles.add(src);
+                            if (srcCode.equals(dstCode)) {
+                                noChangedFiles.add(src.getName());
                                 dstFiles.remove(dst);
                                 break;
                             }
@@ -310,6 +318,21 @@ public class PGenerator {
                             //読み込みに失敗したらそのまま続ける
                             continue;
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    private void getNoChangeFiles(List<FileContainer> src, List<FileContainer> dst) {
+        for (FileContainer s: src) {
+            for (FileContainer d: dst) {
+                if (s.getFileName().equals(d.getFileName())) {
+                    String srcWithoutReturn = s.getContent().replaceAll("\n", "");
+                    String dstWithoutReturn = d.getContent().replaceAll("\n", "");
+                    if (srcWithoutReturn.equals(dstWithoutReturn)) {
+                        noChangedFiles.add(s.getFileName());
+                        break;
                     }
                 }
             }
@@ -329,9 +352,17 @@ public class PGenerator {
      */
     private boolean isUnChangedFile(File file) {
         String fileName = file.getName();
-        for (File n :noChangedFiles) {
-            String name = n.getName();
-            if (name.equals(fileName))
+        for (String n: noChangedFiles) {
+            if (n.equals(fileName))
+                return true;
+        }
+        return false;
+    }
+
+    private boolean isUnchangedFile(FileContainer file) {
+        String fileName = file.getFileName();
+        for (String n: noChangedFiles) {
+            if (n.equals(fileName))
                 return true;
         }
         return false;
@@ -374,10 +405,6 @@ public class PGenerator {
         return new Pair<>(srcTree, dstTree);
     }
 
-    public static int generateNumber() {
-        return num++;
-    }
-
     private void fixMetrics(ITree tree) {
         TreeVisitor.visitTree(tree, new TreeMetricComputer());
     }
@@ -390,6 +417,45 @@ public class PGenerator {
             parent = parent.getParent();
         }
         return it.getLabel();
+    }
+
+    public ITree getProjectTree(List<FileContainer> containers) throws IOException {
+        ITree projectTree = new ProjectTree(TypeSet.type("CompilationUnit")); //土台となる木の元
+        int totalLength = 0; //プロジェクト全体のLengthを記録．処理中は累積の長さになってる
+        for (FileContainer container: containers) {
+            if (isUnchangedFile(container)) //変更されていないファイルとファイル名が一致した時
+                continue;
+            JdtTreeGenerator jdtTreeGenerator = new JdtTreeGenerator();
+            ITree it = jdtTreeGenerator.generateFrom().string(container.getContent()).getRoot();
+            it.setPos(totalLength);
+            //一番最後の子要素のlengthでそのファイルの実質の長さを求めている
+            int length = it.getChild(it.getChildren().size() - 1).getLength() + it.getChild(it.getChildren().size() - 1).getPos();
+            fixTreePosLength(it, totalLength);
+            totalLength += length + 1;
+            it.setLabel(container.getFileName());
+            projectTree.addChild(it);
+        }
+        projectTree.setLength(totalLength);
+        //return convertProjectTree(projectTree, new ProjectTree(TypeSet.type("CompilationUnit")));
+        return projectTree;
+    }
+
+    public Pair<ITree, ITree> getProjectTreePair(List<FileContainer> src, List<FileContainer> dst, String type) throws IOException {
+        typeFilter(src, type);
+        typeFilter(dst, type);
+        ITree srcTree = getProjectTree(src);
+        ITree dstTree = getProjectTree(dst);
+        return new Pair<>(srcTree, dstTree);
+    }
+
+    private void typeFilter(List<FileContainer> containers, String type) {
+        Iterator<FileContainer> iterator = containers.iterator();
+        while (iterator.hasNext()) {
+            FileContainer fc = iterator.next();
+            if (!fc.getFileName().endsWith(type)) {
+                iterator.remove();
+            }
+        }
     }
 
 

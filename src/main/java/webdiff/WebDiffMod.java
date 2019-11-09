@@ -20,20 +20,20 @@
 
 package webdiff;
 
-import com.github.gumtreediff.client.diff.web.*;
-
-import pgenerator.PGenerator;
-
 import com.github.gumtreediff.actions.ChawatheScriptGenerator;
 import com.github.gumtreediff.client.Option;
 import com.github.gumtreediff.client.Register;
 import com.github.gumtreediff.client.diff.AbstractDiffClient;
+import com.github.gumtreediff.client.diff.web.DirectoryComparatorView;
+import com.github.gumtreediff.client.diff.web.MergelyView;
+import com.github.gumtreediff.client.diff.web.ScriptView;
 import com.github.gumtreediff.gen.Registry;
 import com.github.gumtreediff.io.DirectoryComparator;
 import com.github.gumtreediff.tree.TreeContext;
 import com.github.gumtreediff.utils.Pair;
 import org.rendersnake.HtmlCanvas;
 import org.rendersnake.Renderable;
+import pgenerator.PGenerator;
 import pgenerator.SubtreeMatcher;
 import spark.Spark;
 
