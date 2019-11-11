@@ -5,6 +5,7 @@ import com.github.gumtreediff.actions.model.Action;
 import com.github.gumtreediff.actions.model.Move;
 import com.github.gumtreediff.tree.ITree;
 import com.github.gumtreediff.utils.Pair;
+import me.tongfei.progressbar.ProgressBar;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.FileMode;
@@ -70,7 +71,6 @@ public class Experimenter {
         Iterable<RevCommit> revCommits = git.log().call(); //"git log"の結果と同じ
 
         revCommits.forEach(commits::add);
-
         System.out.println("Found " + commits.size() + " commits");
     }
 
@@ -79,24 +79,31 @@ public class Experimenter {
             //マルチスレッド
             ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
             List<Future<?>> futureList = new ArrayList<>();
-            for (int i = commits.size() - 1; i > 0; i--) {
-                Compare compare;
-                compare = new Compare(args, repository, commits, i);
-                Future<?> future = executorService.submit(compare);
-                futureList.add(future);
-            }
-            executorService.shutdown();
-            for (Future<?> future : futureList) {
-                try {
-                    future.get();
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
+            try (ProgressBar pb = new ProgressBar("Comparing(M)", commits.size() - 1)) {
+                for (int i = 1; i < commits.size(); i++) {
+                    Compare compare;
+                    compare = new Compare(args, repository, commits, i);
+                    Future<?> future = executorService.submit(compare);
+                    futureList.add(future);
+                }
+                executorService.shutdown();
+                for (Future<?> future : futureList) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                    pb.step();
                 }
             }
         } else {
             //シングルスレッド
-            for (int i = commits.size() - 1; i > 0; i--) {
-                new Compare(args, repository, commits, i).run();
+            try (ProgressBar pb = new ProgressBar("Comparing(S)", commits.size() - 1)) {
+
+                for (int i = 1; i < commits.size(); i++) {
+                    new Compare(args, repository, commits, i).run();
+                    pb.step();
+                }
             }
         }
     }
@@ -106,24 +113,22 @@ public class Experimenter {
 class Compare implements Runnable {
 
     private final String[] args;
-    private final List<RevCommit> commitLogs;
-    private final int commitLogSize;
+    private final List<RevCommit> commits;
     private final int index;
     private final Repository repository;
 
-    Compare(String[] args,Repository repository, List<RevCommit> commitLogs, int i) {
+    Compare(String[] args,Repository repository, List<RevCommit> commits, int i) {
         this.args = args;
         this.repository = repository;
-        this.commitLogs = commitLogs;
-        commitLogSize = commitLogs.size();
+        this.commits = commits;
         index = i;
     }
 
 
     @Override
     public void run() {
-        List<FileContainer> src = getFileContainers(index - 1, args[0]);
-        List<FileContainer> dst = getFileContainers(index, args[0]);
+        List<FileContainer> src = getFileContainers(index - 1, args[0]); //newProject
+        List<FileContainer> dst = getFileContainers(index, args[0]); //oldProject
 
         PGenerator pGenerator = new PGenerator(src, dst);
         Pair<ITree, ITree> projectTrees;
@@ -136,12 +141,11 @@ class Compare implements Runnable {
 
         EditScript editScript = pGenerator.calculateEditScript(projectTrees);
 
-        int num = commitLogSize - index;
         PrintWriter printLogWriter, printCSVWriter;
         try {
-            String logPath = args[1] + num;
+            String logPath = args[1] + index;
             printLogWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(logPath))));
-            String csvPath = args[1] + num + ".csv";
+            String csvPath = args[1] +index + ".csv";
             printCSVWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(csvPath))));
         } catch (IOException e) {
             e.printStackTrace();
@@ -169,7 +173,7 @@ class Compare implements Runnable {
         }
         printLogWriter.close();
         printCSVWriter.close();
-        System.out.println("Done: " + (commitLogSize - index) + "/" + (commitLogSize - 1));
+        //System.out.println("Done: " + index + "/" + (commits.size() - 1));
     }
 
     private List<FileContainer> getFileContainers(int index, String path) {
@@ -179,7 +183,7 @@ class Compare implements Runnable {
             relativePath = relativePath.replaceFirst("/", ""); //先頭の"/"を除去
         List<FileContainer> containers = new LinkedList<>();
         try (RevWalk walk = new RevWalk(repository)) {
-            RevCommit commit = walk.parseCommit(commitLogs.get(index));
+            RevCommit commit = walk.parseCommit(commits.get(index));
             RevTree tree = walk.parseTree(commit.getTree());
 
             TreeWalk treeWalk = new TreeWalk(repository);
