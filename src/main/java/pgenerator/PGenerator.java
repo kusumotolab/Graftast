@@ -11,6 +11,7 @@ import com.github.gumtreediff.matchers.Matcher;
 import com.github.gumtreediff.matchers.Matchers;
 import com.github.gumtreediff.tree.*;
 import com.github.gumtreediff.utils.Pair;
+import com.sksamuel.diffpatch.DiffMatchPatch;
 import webdiff.WebDiffMod;
 
 import java.io.*;
@@ -22,6 +23,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 
 public class PGenerator {
@@ -305,11 +307,10 @@ public class PGenerator {
                         }
                     } else {
                         //diffが実行できなかった時
-                        //TODO diffっぽいメソッドを作る
                         try {
                             String srcCode = readFile(src.getAbsolutePath(), Charset.defaultCharset());
                             String dstCode = readFile(dst.getAbsolutePath(), Charset.defaultCharset());
-                            if (srcCode.equals(dstCode)) {
+                            if (diff(srcCode, dstCode)) {
                                 noChangedFiles.add(src.getName());
                                 dstFiles.remove(dst);
                                 break;
@@ -328,15 +329,32 @@ public class PGenerator {
         for (FileContainer s: src) {
             for (FileContainer d: dst) {
                 if (s.getFileName().equals(d.getFileName())) {
-                    String srcWithoutReturn = s.getContent().replaceAll("\n", "");
-                    String dstWithoutReturn = d.getContent().replaceAll("\n", "");
-                    if (srcWithoutReturn.equals(dstWithoutReturn)) {
+                    if (diff(s.getContent(), d.getContent()))
                         noChangedFiles.add(s.getFileName());
-                        break;
-                    }
+                    break;
                 }
             }
         }
+    }
+
+    private boolean diff(String srcCode, String dstCode) {
+        // google-diff-match-patch
+        DiffMatchPatch dmp = new DiffMatchPatch();
+        LinkedList<DiffMatchPatch.Diff> diff = dmp.diff_main(srcCode, dstCode);
+        dmp.diff_cleanupEfficiency(diff);
+        return isContainOnlySpaceCharDiff(diff);
+    }
+
+    private boolean isContainOnlySpaceCharDiff(List<DiffMatchPatch.Diff> diff) {
+        for (DiffMatchPatch.Diff df: diff) {
+            if (df.operation != DiffMatchPatch.Operation.EQUAL) {
+                Pattern p = Pattern.compile("[\\s]+");
+                java.util.regex.Matcher m = p.matcher(df.text);
+                if (!m.matches())
+                    return false;
+            }
+        }
+        return true;
     }
 
     private String readFile(String path, Charset encoding)  throws IOException {
