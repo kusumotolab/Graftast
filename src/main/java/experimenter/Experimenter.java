@@ -46,7 +46,6 @@ public class Experimenter {
             new Experimenter(args).start();
         } catch (IOException e) {
             e.printStackTrace();
-            return;
         }
     }
 
@@ -70,7 +69,7 @@ public class Experimenter {
         final Git git = new Git(repository);
         Iterable<RevCommit> revCommits = git.log().call(); //"git log"の結果と同じ
 
-        revCommits.forEach(c -> commits.add(c));
+        revCommits.forEach(commits::add);
 
         System.out.println("Found " + commits.size() + " commits");
     }
@@ -82,12 +81,7 @@ public class Experimenter {
             List<Future<?>> futureList = new ArrayList<>();
             for (int i = commits.size() - 1; i > 0; i--) {
                 Compare compare;
-                try {
-                    compare = new Compare(args, repository, commits, i);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    continue;
-                }
+                compare = new Compare(args, repository, commits, i);
                 Future<?> future = executorService.submit(compare);
                 futureList.add(future);
             }
@@ -95,21 +89,14 @@ public class Experimenter {
             for (Future<?> future : futureList) {
                 try {
                     future.get();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
+                } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
                 }
             }
         } else {
             //シングルスレッド
             for (int i = commits.size() - 1; i > 0; i--) {
-                try {
-                    new Compare(args, repository, commits, i).run();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    continue;
-                }
+                new Compare(args, repository, commits, i).run();
             }
         }
     }
@@ -124,7 +111,7 @@ class Compare implements Runnable {
     private final int index;
     private final Repository repository;
 
-    Compare(String[] args,Repository repository, List<RevCommit> commitLogs, int i) throws IOException {
+    Compare(String[] args,Repository repository, List<RevCommit> commitLogs, int i) {
         this.args = args;
         this.repository = repository;
         this.commitLogs = commitLogs;
@@ -186,7 +173,10 @@ class Compare implements Runnable {
     }
 
     private List<FileContainer> getFileContainers(int index, String path) {
-        final String relativePath = path.replace(repository.getWorkTree().getAbsolutePath() + "/", "");
+        String relativePath = path.replace(repository.getWorkTree().getAbsolutePath() , "");
+        relativePath = relativePath.replace("\\", "/"); //Windows用の対策
+        if (relativePath.charAt(0) == '/')
+            relativePath = relativePath.replaceFirst("/", ""); //先頭の"/"を除去
         List<FileContainer> containers = new LinkedList<>();
         try (RevWalk walk = new RevWalk(repository)) {
             RevCommit commit = walk.parseCommit(commitLogs.get(index));
