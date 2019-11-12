@@ -99,7 +99,6 @@ public class Experimenter {
         } else {
             //シングルスレッド
             try (ProgressBar pb = new ProgressBar("Comparing(S)", commits.size() - 1)) {
-
                 for (int i = 1; i < commits.size(); i++) {
                     new Compare(args, repository, commits, i).run();
                     pb.step();
@@ -179,7 +178,7 @@ class Compare implements Runnable {
     private List<FileContainer> getFileContainers(int index, String path) {
         String relativePath = path.replace(repository.getWorkTree().getAbsolutePath() , "");
         relativePath = relativePath.replace("\\", "/"); //Windows用の対策
-        if (relativePath.charAt(0) == '/')
+        if (relativePath.length() != 0 && relativePath.charAt(0) == '/')
             relativePath = relativePath.replaceFirst("/", ""); //先頭の"/"を除去
         List<FileContainer> containers = new LinkedList<>();
         try (RevWalk walk = new RevWalk(repository)) {
