@@ -158,6 +158,7 @@ class Compare implements Runnable {
                 String srcFileName = pGenerator.getAffiliatedFileName(mv.getNode());
                 String dstFileName = pGenerator.getAffiliatedFileName(mv.getParent());
                 if (!srcFileName.equals(dstFileName)) {
+                    printLogWriter.println(srcFileName + " -> " + dstFileName);
                     printLogWriter.println(action.toString());
                     int size = mv.getNode().getMetrics().size;
                     if (size >= 100)
