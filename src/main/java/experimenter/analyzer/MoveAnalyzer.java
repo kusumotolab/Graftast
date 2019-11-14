@@ -45,7 +45,7 @@ public class MoveAnalyzer {
                 }
             }
         }
-        if (args.length >= 2 && args[1].equals("-m")) {
+        if (args.length >= 2 && args[1].equals("-o")) {
             for (MoveInfo m : moveInfos) {
                 MoveType moveType = new MoveType(m);
                 int index;
@@ -87,13 +87,29 @@ public class MoveAnalyzer {
                     seed = 0;
                 }
                 Random random = new Random(seed);
+                List<MoveInfo> selected = new LinkedList<>();
                 for (int i = 0; i < size; i++) {
                     int index = random.nextInt(filteredMove.size());
-                    System.out.println(filteredMove.get(index).toString());
+                    selected.add(filteredMove.get(index));
                 }
+                selected.forEach(m -> System.out.println(m.toString()));
+                System.out.println(getOutline(selected));
             } else {
                 System.out.println("Usage: option | -a identifier size seed: Show detail about some(size) random move.");
             }
         }
+    }
+
+    private static String getOutline(List<MoveInfo> moveInfos) {
+        StringBuilder builder = new StringBuilder();
+        for (MoveInfo m: moveInfos) {
+            builder.append(m.getSrcFileName());
+            builder.append("\n");
+            builder.append(m.getDstFileName());
+            builder.append("\n");
+            builder.append(m.getCommitNum());
+            builder.append("\n");
+        }
+        return new String(builder);
     }
 }

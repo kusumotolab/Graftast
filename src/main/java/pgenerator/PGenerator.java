@@ -445,11 +445,11 @@ public class PGenerator {
                 continue;
             JdtTreeGenerator jdtTreeGenerator = new JdtTreeGenerator();
             ITree it = jdtTreeGenerator.generateFrom().string(container.getContent()).getRoot();
-            it.setPos(totalLength);
+            //it.setPos(totalLength);
             //一番最後の子要素のlengthでそのファイルの実質の長さを求めている
-            int length = it.getChild(it.getChildren().size() - 1).getLength() + it.getChild(it.getChildren().size() - 1).getPos();
-            fixTreePosLength(it, totalLength);
-            totalLength += length + 1;
+            //int length = it.getChild(it.getChildren().size() - 1).getLength() + it.getChild(it.getChildren().size() - 1).getPos();
+            //fixTreePosLength(it, totalLength);
+            //totalLength += length + 1;
             it.setLabel(container.getFileName());
             projectTree.addChild(it);
         }

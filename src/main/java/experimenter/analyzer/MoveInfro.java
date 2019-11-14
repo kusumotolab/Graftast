@@ -18,6 +18,18 @@ class MoveInfo {
         this.content = content;
     }
 
+    public String getSrcFileName() {
+        return srcFileName;
+    }
+
+    public String getDstFileName() {
+        return dstFileName;
+    }
+
+    public int getCommitNum() {
+        return commitNum;
+    }
+
     @Override
     public String toString() {
         return "commit num: " + commitNum + "\n" + srcFileName + " -> " + dstFileName + "\n" + content ;
@@ -30,4 +42,6 @@ class MoveInfo {
     public int getSize() {
         return size;
     }
+
+
 }
