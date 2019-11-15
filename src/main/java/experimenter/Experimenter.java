@@ -8,6 +8,8 @@ import com.github.gumtreediff.utils.Pair;
 import me.tongfei.progressbar.ProgressBar;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.diff.DiffFormatter;
+import org.eclipse.jgit.diff.RawTextComparator;
 import org.eclipse.jgit.lib.FileMode;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.Repository;
@@ -200,6 +202,13 @@ class Compare implements Runnable {
                 OutputStream outputStream = new ByteArrayOutputStream();
                 loader.copyTo(outputStream);
                 String contents = outputStream.toString();
+
+                DiffFormatter df = new DiffFormatter(outputStream);
+                df.setRepository(repository);
+                df.setDiffComparator(RawTextComparator.DEFAULT);
+                df.setDetectRenames(true);
+                df.getOldPrefix();
+                //DiffEntry
                 outputStream.close();
                 containers.add(new FileContainer(treeWalk.getNameString(), contents));
             }
