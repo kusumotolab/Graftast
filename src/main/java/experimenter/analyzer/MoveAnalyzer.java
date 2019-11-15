@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class MoveAnalyzer {
 
@@ -88,10 +86,10 @@ public class MoveAnalyzer {
                 }
                 Random random = new Random(seed);
                 List<MoveInfo> selected = new LinkedList<>();
-                for (int i = 0; i < size; i++) {
-                    int index = random.nextInt(filteredMove.size());
-                    selected.add(filteredMove.get(index));
-                }
+                Set<Integer> randomIndexSet = new HashSet<>();
+                while (randomIndexSet.size() < size && randomIndexSet.size() < filteredMove.size())
+                    randomIndexSet.add(random.nextInt(filteredMove.size()));
+                randomIndexSet.forEach(i -> selected.add(filteredMove.get(i)));
                 selected.forEach(m -> System.out.println(m.toString()));
                 System.out.println(getOutline(selected));
             } else {

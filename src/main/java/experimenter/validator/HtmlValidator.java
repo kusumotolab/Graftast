@@ -44,6 +44,7 @@ public class HtmlValidator {
         Iterable<RevCommit> log = git.log().call();
         List<RevCommit> revCommits = new LinkedList<>();
         log.forEach(revCommits::add);
+        int index = 1;
         for (Container sample: list) {
             RevCommit srcCommit = null;
             RevCommit dstCommit = null;
@@ -58,21 +59,24 @@ public class HtmlValidator {
             }
             String srcContent = Util.getFileContents(repository, srcCommit, sample.srcFile);
             String dstContent = Util.getFileContents(repository, dstCommit, sample.dstFile);
-            htmlContents.add(generateHtml(sample.srcFile, srcContent, sample.dstFile, dstContent));
+            htmlContents.add(generateHtml(sample.srcFile, srcContent, sample.dstFile, dstContent, String.valueOf(index)));
+            index += 1;
         }
 
         writeHtmlContents();
     }
 
-    private String generateHtml(String srcFile, String srcContent, String dstFile, String dstContent) {
-        StringBuilder builder = new StringBuilder("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/><link type=\"text/css\" href=\"dist/bootstrap.min.css\" rel=\"stylesheet\"/><title>GumTree</title><link rel=\"stylesheet\" href=\"https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css\" integrity=\"sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T\" crossorigin=\"anonymous\"><link type=\"text/css\" href=\"dist/gumtree.css\" rel=\"stylesheet\"/></head><body><div class=\"container-fluid\"><div class=\"row\"><div class=\"col-lg-12\"></div></div><div class=\"row\"><div class=\"col-lg-6 max-height\"><h5>");
+    private String generateHtml(String srcFile, String srcContent, String dstFile, String dstContent, String title) {
+        StringBuilder builder = new StringBuilder("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/><link type=\"text/css\" href=\"dist/bootstrap.min.css\" rel=\"stylesheet\"/><title>");
+        builder.append(title);
+        builder.append("</title><link rel=\"stylesheet\" href=\"https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css\" integrity=\"sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T\" crossorigin=\"anonymous\"><link type=\"text/css\" href=\"dist/gumtree.css\" rel=\"stylesheet\"/></head><body><div class=\"container-fluid\"><div class=\"row\"><div class=\"col-lg-12\"></div></div><div class=\"row\"><div class=\"col-lg-6 max-height\"><h5>");
         builder.append(srcFile);
         builder.append("</h5><div style=\"height:100vh;overflow-auto;\"><pre class=\"pre max-height\">");
-        builder.append(srcContent);
+        builder.append(escapeHtmlTag(srcContent));
         builder.append("</pre></div></div><div class=\"col-lg-6 max-height\"><h5>");
         builder.append(dstFile);
         builder.append("</h5><div style=\"height:100vh;overflow-auto;\"><pre class=\"pre max-height\">");
-        builder.append(dstContent);
+        builder.append(escapeHtmlTag(dstContent));
         builder.append("</pre></div></div></div></div><script src=\"https://code.jquery.com/jquery-3.3.1.slim.min.js\" integrity=\"sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo\" crossorigin=\"anonymous\"></script><script src=\"https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js\" integrity=\"sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut\" crossorigin=\"anonymous\"></script><script src=\"https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js\" integrity=\"sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k\" crossorigin=\"anonymous\"></script></body></html>");
         return new String(builder);
     }
@@ -92,6 +96,13 @@ public class HtmlValidator {
             Files.write(Paths.get(filePath), list, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
             index += 1;
         }
+    }
+
+    private String escapeHtmlTag(String content) {
+        content = content.replace("&", "&amp;");
+        content = content.replace("<", "&lt;");
+        content = content.replace(">", "&gt;");
+        return content;
     }
 
 }
