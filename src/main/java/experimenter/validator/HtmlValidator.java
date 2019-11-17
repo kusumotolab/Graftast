@@ -51,8 +51,8 @@ public class HtmlValidator {
             int counter = 1;
             for (int i = 0; i < revCommits.size(); i++) {
                 if (counter == sample.commitNum) {
-                    srcCommit = revCommits.get(i);
-                    dstCommit = revCommits.get(i + 1);
+                    srcCommit = revCommits.get(i + 1);
+                    dstCommit = revCommits.get(i);
                     break;
                 }
                 counter += 1;

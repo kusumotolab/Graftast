@@ -57,8 +57,8 @@ public class GumtreeValidator {
         int counter = 1;
         while (revCommits.hasNext()) {
             if (counter == commitNum) {
-                srcCommit = revCommits.next();
                 dstCommit = revCommits.next();
+                srcCommit = revCommits.next();
                 break;
             }
             revCommits.next();

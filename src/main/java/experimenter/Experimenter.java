@@ -8,6 +8,7 @@ import com.github.gumtreediff.utils.Pair;
 import me.tongfei.progressbar.ProgressBar;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.diff.RawTextComparator;
 import org.eclipse.jgit.lib.FileMode;
@@ -18,6 +19,7 @@ import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.util.io.NullOutputStream;
 import pgenerator.FileContainer;
 import pgenerator.PGenerator;
 
@@ -117,19 +119,21 @@ class Compare implements Runnable {
     private final List<RevCommit> commits;
     private final int index;
     private final Repository repository;
+    private List<RenamedFile> reNamedFiles = new LinkedList<>();
 
     Compare(String[] args,Repository repository, List<RevCommit> commits, int i) {
         this.args = args;
         this.repository = repository;
         this.commits = commits;
         index = i;
+        setRenamedFiles();
     }
 
 
     @Override
     public void run() {
-        List<FileContainer> src = getFileContainers(index - 1, args[0]); //newProject
-        List<FileContainer> dst = getFileContainers(index, args[0]); //oldProject
+        List<FileContainer> src = getFileContainers(index, args[0]); //newProject
+        List<FileContainer> dst = getFileContainers(index - 1, args[0]); //oldProject
 
         PGenerator pGenerator = new PGenerator(src, dst);
         Pair<ITree, ITree> projectTrees;
@@ -160,13 +164,15 @@ class Compare implements Runnable {
                 String srcFileName = pGenerator.getAffiliatedFileName(mv.getNode());
                 String dstFileName = pGenerator.getAffiliatedFileName(mv.getParent());
                 if (!srcFileName.equals(dstFileName)) {
-                    printLogWriter.println(srcFileName + " -> " + dstFileName);
-                    printLogWriter.println(action.toString());
-                    int size = mv.getNode().getMetrics().size;
-                    if (size >= 100)
-                        moveCount[100] += 1;
-                    else
-                        moveCount[size] += 1;
+                    if (!isFileRenamed(srcFileName, dstFileName)) { //ファイルがリネームされただけのものではない
+                        printLogWriter.println(srcFileName + " -> " + dstFileName);
+                        printLogWriter.println(action.toString());
+                        int size = mv.getNode().getMetrics().size;
+                        if (size >= 100)
+                            moveCount[100] += 1;
+                        else
+                            moveCount[size] += 1;
+                    }
                 }
             }
         }
@@ -202,13 +208,6 @@ class Compare implements Runnable {
                 OutputStream outputStream = new ByteArrayOutputStream();
                 loader.copyTo(outputStream);
                 String contents = outputStream.toString();
-
-                DiffFormatter df = new DiffFormatter(outputStream);
-                df.setRepository(repository);
-                df.setDiffComparator(RawTextComparator.DEFAULT);
-                df.setDetectRenames(true);
-                df.getOldPrefix();
-                //DiffEntry
                 outputStream.close();
                 containers.add(new FileContainer(treeWalk.getNameString(), contents));
             }
@@ -216,5 +215,52 @@ class Compare implements Runnable {
             e.printStackTrace();
         }
         return containers;
+    }
+
+    private void setRenamedFiles() {
+        DiffFormatter df = new DiffFormatter(NullOutputStream.INSTANCE);
+        df.setRepository(repository);
+        df.setDiffComparator(RawTextComparator.DEFAULT);
+        df.setDetectRenames(true);
+        //DiffEntry
+        try (RevWalk walk = new RevWalk(repository)) {
+            RevCommit srcCommit = walk.parseCommit(commits.get(index));
+            RevCommit dstCommit = walk.parseCommit(commits.get(index - 1));
+            List<DiffEntry> diffEntries = df.scan(srcCommit.getTree(), dstCommit.getTree());
+            for (DiffEntry diffEntry: diffEntries) {
+                String oldPath = diffEntry.getOldPath();
+                String newPath = diffEntry.getNewPath();
+                if (!oldPath.equals(newPath))
+                    reNamedFiles.add(new RenamedFile(oldPath, newPath));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean isFileRenamed(String src, String dst) {
+        for (RenamedFile r: reNamedFiles) {
+            if (r.getOldName().equals(src) && r.getNewName().equals(dst))
+                return true;
+        }
+        return false;
+    }
+
+    class RenamedFile {
+        final String oldName;
+        final String newName;
+
+        RenamedFile(String oldName, String newName) {
+            this.oldName = oldName;
+            this.newName = newName;
+        }
+
+        String getOldName() {
+            return oldName;
+        }
+
+        String getNewName() {
+            return oldName;
+        }
     }
 }
