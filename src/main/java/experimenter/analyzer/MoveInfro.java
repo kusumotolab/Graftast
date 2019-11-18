@@ -7,15 +7,17 @@ class MoveInfo {
     private final String dstFileName;
     private final int commitNum;
     private final String content;
+    private final String moveTo;
 
 
-    MoveInfo(String src, String dst, int num, String i, int s, String content) {
+    MoveInfo(String src, String dst, int num, String i, int s, String content, String moveTo) {
         this.identifier = i;
         this.size = s;
         this.srcFileName = src;
         this.dstFileName = dst;
         this.commitNum = num;
         this.content = content;
+        this.moveTo = moveTo;
     }
 
     public String getSrcFileName() {
@@ -32,7 +34,7 @@ class MoveInfo {
 
     @Override
     public String toString() {
-        return "commit num: " + commitNum + "\n" + srcFileName + " -> " + dstFileName + "\n" + content ;
+        return "commit num: " + commitNum + "\n" + srcFileName + " -> " + dstFileName + "\n" + content + moveTo + "\n";
     }
 
     public String getIdentifier() {

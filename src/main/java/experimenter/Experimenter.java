@@ -11,6 +11,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.diff.RawTextComparator;
+import org.eclipse.jgit.diff.RenameDetector;
 import org.eclipse.jgit.lib.FileMode;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.Repository;
@@ -222,16 +223,20 @@ class Compare implements Runnable {
         df.setRepository(repository);
         df.setDiffComparator(RawTextComparator.DEFAULT);
         df.setDetectRenames(true);
-        //DiffEntry
         try (RevWalk walk = new RevWalk(repository)) {
             RevCommit srcCommit = walk.parseCommit(commits.get(index));
             RevCommit dstCommit = walk.parseCommit(commits.get(index - 1));
             List<DiffEntry> diffEntries = df.scan(srcCommit.getTree(), dstCommit.getTree());
-            for (DiffEntry diffEntry: diffEntries) {
-                String oldPath = diffEntry.getOldPath();
-                String newPath = diffEntry.getNewPath();
-                if (!oldPath.equals(newPath))
+            RenameDetector renameDetector = new RenameDetector(repository);
+            renameDetector.addAll(diffEntries);
+            renameDetector.setRenameScore(30);
+            List<DiffEntry> compute = renameDetector.compute();
+            for (DiffEntry diffEntry: compute) {
+                if (diffEntry.getChangeType() == DiffEntry.ChangeType.RENAME || diffEntry.getChangeType() == DiffEntry.ChangeType.COPY) {
+                    String oldPath = diffEntry.getOldPath();
+                    String newPath = diffEntry.getNewPath();
                     reNamedFiles.add(new RenamedFile(oldPath, newPath));
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -240,7 +245,7 @@ class Compare implements Runnable {
 
     private boolean isFileRenamed(String src, String dst) {
         for (RenamedFile r: reNamedFiles) {
-            if (r.getOldName().equals(src) && r.getNewName().equals(dst))
+            if (r.getOldName().endsWith(src) && r.getNewName().endsWith(dst))
                 return true;
         }
         return false;
@@ -260,7 +265,7 @@ class Compare implements Runnable {
         }
 
         String getNewName() {
-            return oldName;
+            return newName;
         }
     }
 }

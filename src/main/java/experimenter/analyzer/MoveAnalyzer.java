@@ -38,7 +38,8 @@ public class MoveAnalyzer {
                         builder.append("\n");
                         size += 1;
                     }
-                    moveInfos.add(new MoveInfo(src, dst, commitNum, identifier, size, new String(builder)));
+                    String moveTo = results.get(i + size + 1) + results.get(i + size + 2);
+                    moveInfos.add(new MoveInfo(src, dst, commitNum, identifier, size, new String(builder), moveTo));
                     i += size + 3;
                 }
             }
@@ -90,7 +91,11 @@ public class MoveAnalyzer {
                 while (randomIndexSet.size() < size && randomIndexSet.size() < filteredMove.size())
                     randomIndexSet.add(random.nextInt(filteredMove.size()));
                 randomIndexSet.forEach(i -> selected.add(filteredMove.get(i)));
-                selected.forEach(m -> System.out.println(m.toString()));
+                int i = 1;
+                for (MoveInfo m: selected) {
+                    System.out.println(i++);
+                    System.out.println(m.toString());
+                }
                 System.out.println(getOutline(selected));
             } else {
                 System.out.println("Usage: option | -a identifier size seed: Show detail about some(size) random move.");
