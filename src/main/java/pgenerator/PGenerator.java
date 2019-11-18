@@ -7,8 +7,6 @@ import com.github.gumtreediff.client.Run;
 import com.github.gumtreediff.gen.Generators;
 import com.github.gumtreediff.gen.jdt.JdtTreeGenerator;
 import com.github.gumtreediff.matchers.MappingStore;
-import com.github.gumtreediff.matchers.Matcher;
-import com.github.gumtreediff.matchers.Matchers;
 import com.github.gumtreediff.tree.*;
 import com.github.gumtreediff.utils.Pair;
 import com.sksamuel.diffpatch.DiffMatchPatch;
@@ -79,8 +77,7 @@ public class PGenerator {
         ITree srcProject = projectTrees.first;
         ITree dstProject = projectTrees.second;
 
-        Matcher m = Matchers.getInstance().getMatcher();
-        MappingStore mappingStore = new SubtreeMatcher().match(srcProject, dstProject);
+        MappingStore mappingStore = new ProjectMatcher().match(srcProject, dstProject);
 
         EditScriptGenerator editScriptGenerator;
         editScriptGenerator = new ChawatheScriptGenerator();
@@ -467,13 +464,7 @@ public class PGenerator {
     }
 
     private void typeFilter(List<FileContainer> containers, String type) {
-        Iterator<FileContainer> iterator = containers.iterator();
-        while (iterator.hasNext()) {
-            FileContainer fc = iterator.next();
-            if (!fc.getFileName().endsWith(type)) {
-                iterator.remove();
-            }
-        }
+        containers.removeIf(fc -> !fc.getFileName().endsWith(type));
     }
 
 
