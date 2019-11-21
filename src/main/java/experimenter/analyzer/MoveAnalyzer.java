@@ -112,6 +112,10 @@ public class MoveAnalyzer {
             builder.append("\n");
             builder.append(m.getCommitNum());
             builder.append("\n");
+            builder.append(m.getSrcRangeStart()).append(",");
+            builder.append(m.getSrcRangeEnd()).append(",");
+            builder.append(m.getDstRangeStart()).append(",");
+            builder.append(m.getDstRangeEnd()).append("\n");
         }
         return new String(builder);
     }

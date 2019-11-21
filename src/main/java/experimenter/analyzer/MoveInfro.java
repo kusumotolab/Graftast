@@ -1,5 +1,8 @@
 package experimenter.analyzer;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 class MoveInfo {
     private final String identifier;
     private final int size;
@@ -9,6 +12,10 @@ class MoveInfo {
     private final String content;
     private final String moveTo;
 
+    private final int srcRangeStart;
+    private final int srcRangeEnd;
+    private final int dstRangeStart;
+    private final int dstRangeEnd;
 
     MoveInfo(String src, String dst, int num, String i, int s, String content, String moveTo) {
         this.identifier = i;
@@ -18,6 +25,16 @@ class MoveInfo {
         this.commitNum = num;
         this.content = content;
         this.moveTo = moveTo;
+
+        Pattern p = Pattern.compile("\\[([0-9]+),([0-9]+)]");
+        Matcher srcMatcher = p.matcher(content.split("\n")[0]);
+        Matcher dstMatcher = p.matcher(moveTo);
+        srcMatcher.find();
+        dstMatcher.find();
+        this.srcRangeStart = Integer.parseInt(srcMatcher.group(1));
+        this.srcRangeEnd = Integer.parseInt(srcMatcher.group(2));
+        this.dstRangeStart = Integer.parseInt(dstMatcher.group(1));
+        this.dstRangeEnd = Integer.parseInt(dstMatcher.group(2));
     }
 
     public String getSrcFileName() {
@@ -43,6 +60,22 @@ class MoveInfo {
 
     public int getSize() {
         return size;
+    }
+
+    public int getSrcRangeStart() {
+        return srcRangeStart;
+    }
+
+    public int getSrcRangeEnd() {
+        return srcRangeEnd;
+    }
+
+    public int getDstRangeStart() {
+        return dstRangeStart;
+    }
+
+    public int getDstRangeEnd() {
+        return dstRangeEnd;
     }
 
 
