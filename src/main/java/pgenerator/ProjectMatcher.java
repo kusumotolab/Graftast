@@ -22,7 +22,13 @@ public class ProjectMatcher implements Matcher {
                 }
             }
         }
-        mappingStore = m.match(src, dst, mappingStore); //全体のマッチング
+        MappingStore mappingStoreAll = m.match(src, dst); //全体のマッチング
+        for (Mapping mapping : mappingStoreAll) {
+            ITree srcCandidate = mapping.first;
+            ITree dstCandidate = mapping.second;
+            if (mappingStore.isMappingAllowed(srcCandidate, dstCandidate))
+                mappingStore.addMapping(srcCandidate, dstCandidate);
+        }
         return mappingStore;
     }
 

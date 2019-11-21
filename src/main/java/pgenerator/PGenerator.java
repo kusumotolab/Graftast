@@ -18,7 +18,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -435,7 +434,7 @@ public class PGenerator {
     }
 
     public ITree getProjectTree(List<FileContainer> containers) throws IOException {
-        ITree projectTree = new ProjectTree(TypeSet.type("CompilationUnit")); //土台となる木の元
+        ITree projectTree = new Tree(TypeSet.type("CompilationUnit")); //土台となる木の元
         int totalLength = 0; //プロジェクト全体のLengthを記録．処理中は累積の長さになってる
         for (FileContainer container: containers) {
             if (isUnchangedFile(container)) //変更されていないファイルとファイル名が一致した時
@@ -465,6 +464,13 @@ public class PGenerator {
 
     private void typeFilter(List<FileContainer> containers, String type) {
         containers.removeIf(fc -> !fc.getFileName().endsWith(type));
+    }
+
+    public ITree getRoot(ITree tree) {
+        if (!tree.isRoot())
+            return getRoot(tree.getParent());
+        else
+            return tree;
     }
 
 
