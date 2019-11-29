@@ -29,6 +29,7 @@ public class MoveAnalyzer {
                 for (int i = 0; i < results.size();) {
                     String src = results.get(i).split(" ")[0];
                     String dst = results.get(i).split(" ")[2];
+                    String dstOriginal = results.get(i).split(" ")[4];
                     i += 4;
                     String identifier = results.get(i).split(" ")[0];
                     int size = 0;
@@ -38,8 +39,8 @@ public class MoveAnalyzer {
                         builder.append("\n");
                         size += 1;
                     }
-                    String moveTo = results.get(i + size + 1) + results.get(i + size + 2);
-                    moveInfos.add(new MoveInfo(src, dst, commitNum, identifier, size, new String(builder), moveTo));
+                    String moveTo = results.get(i + size + 1) + results.get(i + size + 3); // to \n NodeType [xxxx,yyyy]
+                    moveInfos.add(new MoveInfo(src, dst, dstOriginal, commitNum, identifier, size, new String(builder), moveTo));
                     i += size + 3;
                 }
             }
@@ -109,6 +110,8 @@ public class MoveAnalyzer {
             builder.append(m.getSrcFileName());
             builder.append("\n");
             builder.append(m.getDstFileName());
+            builder.append("\n");
+            builder.append(m.getDstFileNameOriginal());
             builder.append("\n");
             builder.append(m.getCommitNum());
             builder.append("\n");

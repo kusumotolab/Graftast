@@ -163,13 +163,20 @@ class Compare implements Runnable {
             if (action instanceof Move) {
                 Move mv = (Move)action;
                 String srcFileName = pGenerator.getAffiliatedFileName(mv.getNode());
-                String dstFileName = pGenerator.getAffiliatedFileName(mv.getParent());
+                String dstFileName = pGenerator.getFinalDstFile(mv, editScript);
+                String dstFileNameOriginal = pGenerator.getAffiliatedFileName(mv.getParent());
                 if (!srcFileName.equals(dstFileName)) {
                     if (!isFileRenamed(srcFileName, dstFileName)) { //ファイルがリネームされただけのものではない
                         if (pGenerator.getRoot(mv.getNode()) == pGenerator.getRoot(mv.getParent()))
                             continue;
-                        printLogWriter.println(srcFileName + " -> " + dstFileName);
+                        printLogWriter.println(srcFileName + " -> " + dstFileName + " from " + dstFileNameOriginal);
                         printLogWriter.println(action.toString());
+                        try {
+                            printLogWriter.println(mv.getParent().getChild(mv.getPosition()).toString());
+                        } catch (IndexOutOfBoundsException e) {
+                            printLogWriter.println(mv.getParent().toString());
+                        }
+                        printLogWriter.println();
                         int size = mv.getNode().getMetrics().size;
                         if (size >= 100)
                             moveCount[100] += 1;

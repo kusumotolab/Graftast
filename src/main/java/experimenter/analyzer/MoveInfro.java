@@ -8,6 +8,7 @@ class MoveInfo {
     private final int size;
     private final String srcFileName;
     private final String dstFileName;
+    private final String dstFileNameOriginal;
     private final int commitNum;
     private final String content;
     private final String moveTo;
@@ -17,11 +18,12 @@ class MoveInfo {
     private final int dstRangeStart;
     private final int dstRangeEnd;
 
-    MoveInfo(String src, String dst, int num, String i, int s, String content, String moveTo) {
+    MoveInfo(String src, String dst, String dstOrig, int num, String i, int s, String content, String moveTo) {
         this.identifier = i;
         this.size = s;
         this.srcFileName = src;
         this.dstFileName = dst;
+        this.dstFileNameOriginal = dstOrig;
         this.commitNum = num;
         this.content = content;
         this.moveTo = moveTo;
@@ -43,6 +45,10 @@ class MoveInfo {
 
     public String getDstFileName() {
         return dstFileName;
+    }
+
+    public String getDstFileNameOriginal() {
+        return dstFileNameOriginal;
     }
 
     public int getCommitNum() {

@@ -3,6 +3,8 @@ package pgenerator;
 import com.github.gumtreediff.actions.ChawatheScriptGenerator;
 import com.github.gumtreediff.actions.EditScript;
 import com.github.gumtreediff.actions.EditScriptGenerator;
+import com.github.gumtreediff.actions.model.Action;
+import com.github.gumtreediff.actions.model.Move;
 import com.github.gumtreediff.client.Run;
 import com.github.gumtreediff.gen.Generators;
 import com.github.gumtreediff.gen.jdt.JdtTreeGenerator;
@@ -20,6 +22,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 import java.util.regex.Pattern;
 
 
@@ -46,7 +49,29 @@ public class PGenerator {
         long startTime = System.currentTimeMillis();
 
         try {
-            calculateEditScript(args[0], args[1]);
+            EditScript editScript = calculateEditScript(args[0], args[1]);
+            for (Action action : editScript) {
+                if (action instanceof Move) {
+                    Move mv = (Move)action;
+                    String srcFileName = getAffiliatedFileName(mv.getNode());
+                    String dstFileName = getFinalDstFile(mv, editScript);
+                    String dstFileNameOld = getAffiliatedFileName(mv.getParent());
+                    if (!srcFileName.equals(dstFileName)) {
+                        if (getRoot(mv.getNode()) == getRoot(mv.getParent())) {
+                            System.out.println("Same tree");
+                        } else
+                            System.out.println("Different Tree");
+                        System.out.println(srcFileName + " -> " + dstFileName + " from " + dstFileNameOld);
+                        System.out.println(action.toString());
+                        try {
+                            System.out.println(mv.getParent().getChild(mv.getPosition()).toString());
+                        } catch (IndexOutOfBoundsException e) {
+                            System.out.println(mv.getParent().toString());
+                        }
+                        System.out.println();
+                    }
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
             return;
@@ -471,6 +496,45 @@ public class PGenerator {
             return getRoot(tree.getParent());
         else
             return tree;
+    }
+
+    //TODO 仮にここに置いてる
+    public String getFinalDstFile(Move mv, EditScript editScript) {
+        for (ITree tree = mv.getParent(); !tree.isRoot(); tree = tree.getParent()) {
+            for (Action action: editScript) {
+                if (action instanceof Move) {
+                    if (action.getNode() == tree) {
+                        return getFinalDstFile((Move)action, editScript);
+                    }
+                }
+            }
+        }
+        return getAffiliatedFileName(mv.getParent());
+    }
+
+    //TODO 最終的な移動先を知るメソッドを作る．未完成
+    private ITree getFinalDst(Move mv, EditScript editScript) {
+        Stack<Integer> stack = new Stack<>();
+        stack.push(mv.getPosition());
+        for (ITree tree = mv.getParent(); !tree.isRoot(); tree = tree.getParent()) {
+            for (Action action: editScript) {
+                if (action instanceof Move) {
+                    if (action.getNode() == tree) {
+                        ITree dst = getFinalDst((Move)action, editScript);
+                        while (!stack.isEmpty()) {
+                            try {
+                                dst = dst.getChild(stack.pop());
+                            } catch (IndexOutOfBoundsException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        return dst;
+                    }
+                }
+            }
+            stack.push(tree.positionInParent());
+        }
+        return mv.getParent().getChild(mv.getPosition());
     }
 
 

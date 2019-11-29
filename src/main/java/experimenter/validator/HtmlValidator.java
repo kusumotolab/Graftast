@@ -26,8 +26,8 @@ public class HtmlValidator {
         repository = new FileRepositoryBuilder()
                 .findGitDir(new File(args[0]))
                 .build();
-        for (int i = 1; i < args.length; i += 4) {
-            list.add(new Container(args[i], args[i+1], args[i+2], args[i+3]));
+        for (int i = 1; i < args.length; i += 5) {
+            list.add(new Container(args[i], args[i+1], args[i+2], args[i+3], args[i+4]));
         }
     }
 
@@ -76,7 +76,10 @@ public class HtmlValidator {
         builder.append("</h5><div style=\"height:50vh;overflow-auto;\"><pre class=\"pre max-height\">");
         builder.append(escapeHtmlTag(srcContentOld));
         builder.append("</pre></div></div><div class=\"col-lg-6 max-height\"><h5>");
-        builder.append(c.dstFile).append("(New)");
+        if (c.dstFile.equals(c.dstFileOrig))
+            builder.append(c.dstFile).append(")(New)");
+        else
+            builder.append(c.dstFile).append("(Original:").append(c.dstFileOrig).append(")(New)");
         builder.append("</h5><div style=\"height:50vh;overflow-auto;\"><pre class=\"pre max-height\">");
         builder.append(escapeHtmlTag(dstContentNew));
         builder.append("</pre></div></div><div class=\"col-lg-6 max-height\"><h5>");
@@ -144,6 +147,7 @@ public class HtmlValidator {
 class Container {
     String srcFile;
     String dstFile;
+    String dstFileOrig;
     int commitNum;
 
     int srcRangeStart;
@@ -151,9 +155,10 @@ class Container {
     int dstRangeStart;
     int dstRangeEnd;
 
-    Container(String src, String dst, String n, String range) {
+    Container(String src, String dst, String dstOrig, String n, String range) {
         this.srcFile = src;
         this.dstFile = dst;
+        this.dstFileOrig = dstOrig;
         this.commitNum = Integer.parseInt(n);
         String[] str = range.split(",");
         srcRangeStart = Integer.parseInt(str[0]);
