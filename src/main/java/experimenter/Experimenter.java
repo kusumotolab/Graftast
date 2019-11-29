@@ -167,8 +167,6 @@ class Compare implements Runnable {
                 String dstFileNameOriginal = pGenerator.getAffiliatedFileName(mv.getParent());
                 if (!srcFileName.equals(dstFileName)) {
                     if (!isFileRenamed(srcFileName, dstFileName)) { //ファイルがリネームされただけのものではない
-                        if (pGenerator.getRoot(mv.getNode()) == pGenerator.getRoot(mv.getParent()))
-                            continue;
                         printLogWriter.println(srcFileName + " -> " + dstFileName + " from " + dstFileNameOriginal);
                         printLogWriter.println(action.toString());
                         try {
