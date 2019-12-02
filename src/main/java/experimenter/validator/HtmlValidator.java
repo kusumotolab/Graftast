@@ -118,27 +118,29 @@ public class HtmlValidator {
             srcBuilder.insert(c.srcRangeEnd, "</span>");
             srcBuilder.insert(c.srcRangeStart, "<span class=\"marker\" id=\"mapping-1\"></span><span class=\"token mv\" id=\"move-src-1\" data-title=\"\">");
         } catch (StringIndexOutOfBoundsException e) {
+            e.printStackTrace();
         }
         StringBuilder dstBuilder = new StringBuilder(dstContent);
         try {
             dstBuilder.insert(c.dstRangeEnd, "</span>");
             dstBuilder.insert(c.dstRangeStart, "<span class=\"marker\" id=\"mapping-2\"></span><span class=\"token mv\" id=\"move-dst-1\" data-title=\"\">");
         } catch (StringIndexOutOfBoundsException e) {
+            e.printStackTrace();
         }
         return new String[]{new String(srcBuilder), new String(dstBuilder)};
     }
 
     private String escapeHtmlTag(String content) {
-        content = content.replace("あんど", "&amp;");
-        content = content.replace("だいなり", "&lt;");
-        content = content.replace("しょうなり", "&gt;");
+        content = content.replace("あ", "&amp;");
+        content = content.replace("だ", "&lt;");
+        content = content.replace("し", "&gt;");
         return content;
     }
 
     private String escapeHtmlTagPre(String content) {
-        content = content.replace("&", "あんど");
-        content = content.replace("<", "だいなり");
-        content = content.replace(">", "しょうなり");
+        content = content.replace("&", "あ");
+        content = content.replace("<", "だ");
+        content = content.replace(">", "し");
         return content;
     }
 
