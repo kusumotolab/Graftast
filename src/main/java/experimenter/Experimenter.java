@@ -147,18 +147,20 @@ class Compare implements Runnable {
 
         EditScript editScript = pGenerator.calculateEditScript(projectTrees);
 
-        PrintWriter printLogWriter, printCSVWriter;
+        PrintWriter printLogWriter, printCSVWriter, printMoveInFile;
         try {
             String logPath = args[1] + index;
             printLogWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(logPath))));
-            String csvPath = args[1] +index + ".csv";
+            String csvPath = args[1] + index + ".csv";
             printCSVWriter = new PrintWriter(new BufferedWriter(new FileWriter(new File(csvPath))));
+            printMoveInFile = new PrintWriter(new BufferedWriter(new FileWriter(new File(args[1] + "moveInFile"), true)));
         } catch (IOException e) {
             e.printStackTrace();
             return;
         }
 
         int[] moveCount = new int[100 + 1];
+        int moveInFile = 0;
         for (Action action : editScript) {
             if (action instanceof Move) {
                 Move mv = (Move)action;
@@ -181,14 +183,20 @@ class Compare implements Runnable {
                         else
                             moveCount[size] += 1;
                     }
+                } else {
+                    moveInFile += 1;
                 }
             }
         }
         for(int val: moveCount) {
             printCSVWriter.println(val);
         }
+        synchronized (commits) {
+            printMoveInFile.println(moveInFile);
+        }
         printLogWriter.close();
         printCSVWriter.close();
+        printMoveInFile.close();
         //System.out.println("Done: " + index + "/" + (commits.size() - 1));
     }
 

@@ -23,7 +23,7 @@ public class MoveAnalyzer {
         List<MoveInfo> moveInfos = new LinkedList<>();
         List<MoveType> moveTypes = new LinkedList<>();
         for (File f: files) {
-            if (!f.getPath().endsWith(".csv")) {
+            if (!f.getPath().endsWith(".csv") && !f.getName().equals("moveInFile")) {
                 int commitNum = Integer.parseInt(f.getName().replace(".csv",""));
                 List<String> results = Files.readAllLines(Paths.get(f.getPath()));
                 for (int i = 0; i < results.size();) {
@@ -39,9 +39,9 @@ public class MoveAnalyzer {
                         builder.append("\n");
                         size += 1;
                     }
-                    String moveTo = results.get(i + size + 1) + results.get(i + size + 3); // to \n NodeType [xxxx,yyyy]
+                    String moveTo = results.get(i + size + 3) + results.get(i + size + 2); // to \n NodeType [xxxx,yyyy]
                     moveInfos.add(new MoveInfo(src, dst, dstOriginal, commitNum, identifier, size, new String(builder), moveTo));
-                    i += size + 3;
+                    i += size + 5;
                 }
             }
         }
