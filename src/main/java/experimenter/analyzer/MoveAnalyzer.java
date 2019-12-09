@@ -62,10 +62,14 @@ public class MoveAnalyzer {
                 System.out.println("  size: " + m.getSizeAverage());
             }
             int num = 0;
-            for (MoveType m : moveTypes)
+            double average = 0;
+            for (MoveType m : moveTypes) {
+                average =  (average * num + m.getSizeAverage() * m.getNum()) / (num + m.getNum());
                 num += m.getNum();
+            }
 
             System.out.println("Total: " + num);
+            System.out.println("Average: " + average);
         } else if (args[1].equals("-a")) {
             if (args.length >= 3) {
                 String identifier = args[2];
