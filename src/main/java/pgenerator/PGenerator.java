@@ -7,7 +7,7 @@ import com.github.gumtreediff.actions.model.Action;
 import com.github.gumtreediff.actions.model.Move;
 import com.github.gumtreediff.client.Run;
 import com.github.gumtreediff.gen.Generators;
-import com.github.gumtreediff.gen.jdt.JdtTreeGenerator;
+import com.github.gumtreediff.gen.TreeGenerator;
 import com.github.gumtreediff.matchers.MappingStore;
 import com.github.gumtreediff.tree.*;
 import com.github.gumtreediff.utils.Pair;
@@ -48,7 +48,7 @@ public class PGenerator {
     public void start(String[] args) {
         long startTime = System.currentTimeMillis();
 
-        try {
+/*        try {
             EditScript editScript = calculateEditScript(args[0], args[1]);
             for (Action action : editScript) {
                 if (action instanceof Move) {
@@ -75,7 +75,30 @@ public class PGenerator {
         } catch (IOException e) {
             e.printStackTrace();
             return;
+        }*/
+
+        List<FileContainer> c1 = new LinkedList<>(), c2 = new LinkedList<>();
+        for (File f: findAllFiles(new File(args[0]), "java")) {
+            try {
+                c1.add(new FileContainer(f.getName(), readFile(f.getAbsolutePath(), Charset.defaultCharset())));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+        for (File f: findAllFiles(new  File(args[1]), "java")) {
+            try {
+                c2.add(new FileContainer(f.getName(), readFile(f.getAbsolutePath(), Charset.defaultCharset())));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            EditScript es = calculateEditScript(getProjectTreePair(c1, c2, "java"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
         long endTime = System.currentTimeMillis();
         double time = (double)(endTime - startTime) / 1000;
@@ -464,8 +487,7 @@ public class PGenerator {
         for (FileContainer container: containers) {
             if (isUnchangedFile(container)) //変更されていないファイルとファイル名が一致した時
                 continue;
-            JdtTreeGenerator jdtTreeGenerator = new JdtTreeGenerator();
-            ITree it = jdtTreeGenerator.generateFrom().string(container.getContent()).getRoot();
+            ITree it = this.getTree(container).getRoot();
             //it.setPos(totalLength);
             //一番最後の子要素のlengthでそのファイルの実質の長さを求めている
             //int length = it.getChild(it.getChildren().size() - 1).getLength() + it.getChild(it.getChildren().size() - 1).getPos();
@@ -477,6 +499,15 @@ public class PGenerator {
         projectTree.setLength(totalLength);
         //return convertProjectTree(projectTree, new ProjectTree(TypeSet.type("CompilationUnit")));
         return projectTree;
+    }
+
+    private TreeContext getTree(FileContainer container) throws IOException {
+        TreeGenerator p = Generators.getInstance().get(container.getFileName(), new Object[0]);
+        if (p == null) {
+            throw new UnsupportedOperationException("No generator found for file: " + container.getFileName());
+        } else {
+            return p.generateFrom().string(container.getContent());
+        }
     }
 
     public Pair<ITree, ITree> getProjectTreePair(List<FileContainer> src, List<FileContainer> dst, String type) throws IOException {
