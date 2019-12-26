@@ -225,12 +225,21 @@ class Compare implements Runnable {
                 loader.copyTo(outputStream);
                 String contents = outputStream.toString();
                 outputStream.close();
-                containers.add(new FileContainer(treeWalk.getNameString(), contents));
+                int insertIndex = getInsertIndex(containers, treeWalk.getNameString());
+                containers.add(insertIndex, new FileContainer(treeWalk.getNameString(), contents));
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
         return containers;
+    }
+
+    private int getInsertIndex(List<FileContainer> list, String str) {
+        for (FileContainer fc: list) {
+            if (fc.getFileName().compareTo(str) > 0)
+                return list.indexOf(fc);
+        }
+        return list.size();
     }
 
     private void setRenamedFiles() {

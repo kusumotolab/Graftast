@@ -147,12 +147,28 @@ public class PGenerator {
             return new LinkedList<>();
         for (File file: rootFiles) {
             if (file.isDirectory()) {
-                files.addAll(findAllFiles(file, type));
+                insertAdd(files, findAllFiles(file, type));
             } else if (file.getPath().endsWith(type)){
-                files.add(file);
+                insertAdd(files, file);
             }
         }
         return files;
+    }
+
+    private void insertAdd(List<File> list, File file) {
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).getName().compareTo(file.getName()) > 0) {
+                list.add(i, file);
+                return;
+            }
+        }
+        list.add(file);
+        return;
+    }
+
+    private void insertAdd(List<File> list, List<File> files) {
+        for (File f: files)
+            insertAdd(list, f);
     }
 
 
