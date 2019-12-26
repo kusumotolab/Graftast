@@ -99,6 +99,8 @@ build/
 
 lib/
 
+tmp/
+
 .DS_Store
 
 memo/
