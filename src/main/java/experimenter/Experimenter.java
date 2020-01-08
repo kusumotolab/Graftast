@@ -85,7 +85,7 @@ public class Experimenter {
             ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
             List<Future<?>> futureList = new ArrayList<>();
             try (ProgressBar pb = new ProgressBar("Comparing(M)", commits.size() - 1)) {
-                for (int i = 1; i < commits.size(); i++) {
+                for (int i = 0; i < commits.size() - 1; i++) {
                     Compare compare;
                     compare = new Compare(args, repository, commits, i);
                     Future<?> future = executorService.submit(compare);
@@ -104,7 +104,7 @@ public class Experimenter {
         } else {
             //シングルスレッド
             try (ProgressBar pb = new ProgressBar("Comparing(S)", commits.size() - 1)) {
-                for (int i = 1; i < commits.size(); i++) {
+                for (int i = 0; i < commits.size() - 1 ; i++) {
                     new Compare(args, repository, commits, i).run();
                     pb.step();
                 }
@@ -120,6 +120,8 @@ class Compare implements Runnable {
     private final List<RevCommit> commits;
     private final int index;
     private final Repository repository;
+    private final RevCommit srcCommit;
+    private final RevCommit dstCommit;
     private List<RenamedFile> reNamedFiles = new LinkedList<>();
 
     Compare(String[] args,Repository repository, List<RevCommit> commits, int i) {
@@ -127,14 +129,23 @@ class Compare implements Runnable {
         this.repository = repository;
         this.commits = commits;
         index = i;
-        setRenamedFiles();
+        RevCommit srcCommit1;
+        try {
+            srcCommit1 = commits.get(index).getParent(0);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            e.printStackTrace();
+            srcCommit1 = commits.get(index); //改善の余地あり
+        }
+        srcCommit = srcCommit1;
+        dstCommit = commits.get(index);
+        setRenamedFiles(srcCommit, dstCommit);
     }
 
 
     @Override
     public void run() {
-        List<FileContainer> src = getFileContainers(index, args[0]); //newProject
-        List<FileContainer> dst = getFileContainers(index - 1, args[0]); //oldProject
+        List<FileContainer> src = getFileContainers(srcCommit, args[0]); //oldProject
+        List<FileContainer> dst = getFileContainers(dstCommit, args[0]); //newProject
 
         PGenerator pGenerator = new PGenerator(src, dst);
         Pair<ITree, ITree> projectTrees;
@@ -200,14 +211,13 @@ class Compare implements Runnable {
         //System.out.println("Done: " + index + "/" + (commits.size() - 1));
     }
 
-    private List<FileContainer> getFileContainers(int index, String path) {
+    private List<FileContainer> getFileContainers(RevCommit commit, String path) {
         String relativePath = path.replace(repository.getWorkTree().getAbsolutePath() , "");
         relativePath = relativePath.replace("\\", "/"); //Windows用の対策
         if (relativePath.length() != 0 && relativePath.charAt(0) == '/')
             relativePath = relativePath.replaceFirst("/", ""); //先頭の"/"を除去
         List<FileContainer> containers = new LinkedList<>();
         try (RevWalk walk = new RevWalk(repository)) {
-            RevCommit commit = walk.parseCommit(commits.get(index));
             RevTree tree = walk.parseTree(commit.getTree());
 
             TreeWalk treeWalk = new TreeWalk(repository);
@@ -242,14 +252,12 @@ class Compare implements Runnable {
         return list.size();
     }
 
-    private void setRenamedFiles() {
+    private void setRenamedFiles(RevCommit srcCommit, RevCommit dstCommit) {
         DiffFormatter df = new DiffFormatter(NullOutputStream.INSTANCE);
         df.setRepository(repository);
         df.setDiffComparator(RawTextComparator.DEFAULT);
         df.setDetectRenames(true);
-        try (RevWalk walk = new RevWalk(repository)) {
-            RevCommit srcCommit = walk.parseCommit(commits.get(index));
-            RevCommit dstCommit = walk.parseCommit(commits.get(index - 1));
+        try {
             List<DiffEntry> diffEntries = df.scan(srcCommit.getTree(), dstCommit.getTree());
             RenameDetector renameDetector = new RenameDetector(repository);
             renameDetector.addAll(diffEntries);
