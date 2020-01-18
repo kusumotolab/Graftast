@@ -40,8 +40,9 @@ public class MoveAnalyzer {
                         size += 1;
                     }
                     String moveTo = results.get(i + size + 3) + results.get(i + size + 2); // to \n NodeType [xxxx,yyyy]
-                    moveInfos.add(new MoveInfo(src, dst, dstOriginal, commitNum, identifier, size, new String(builder), moveTo));
-                    i += size + 5;
+                    String moveFrom = results.get(i + size + 5);
+                    moveInfos.add(new MoveInfo(src, dst, dstOriginal, commitNum, identifier, size, new String(builder), moveTo, moveFrom));
+                    i += size + 7;
                 }
             }
         }

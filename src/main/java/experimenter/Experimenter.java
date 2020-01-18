@@ -122,6 +122,7 @@ class Compare implements Runnable {
     private final Repository repository;
     private final RevCommit srcCommit;
     private final RevCommit dstCommit;
+    private final int parentCount;
     private List<RenamedFile> reNamedFiles = new LinkedList<>();
 
     Compare(String[] args,Repository repository, List<RevCommit> commits, int i) {
@@ -129,14 +130,11 @@ class Compare implements Runnable {
         this.repository = repository;
         this.commits = commits;
         index = i;
-        RevCommit srcCommit1;
-        try {
-            srcCommit1 = commits.get(index).getParent(0);
-        } catch (ArrayIndexOutOfBoundsException e) {
-            e.printStackTrace();
-            srcCommit1 = commits.get(index); //改善の余地あり
-        }
-        srcCommit = srcCommit1;
+        parentCount = commits.get(index).getParentCount();
+        if (parentCount == 1)
+            srcCommit = commits.get(index).getParent(0);
+        else
+            srcCommit = commits.get(index);
         dstCommit = commits.get(index);
         setRenamedFiles(srcCommit, dstCommit);
     }
@@ -144,6 +142,8 @@ class Compare implements Runnable {
 
     @Override
     public void run() {
+        if (parentCount != 1) //マージコミットなどはスルー
+            return;
         List<FileContainer> src = getFileContainers(srcCommit, args[0]); //oldProject
         List<FileContainer> dst = getFileContainers(dstCommit, args[0]); //newProject
 
@@ -183,10 +183,17 @@ class Compare implements Runnable {
                         printLogWriter.println(srcFileName + " -> " + dstFileName + " from " + dstFileNameOriginal);
                         printLogWriter.println(action.toString());
                         try {
-                            printLogWriter.println(mv.getParent().getChild(mv.getPosition()).toString());
+                            String toMoveName = "";
+                            for (ITree it: mv.getParent().getChild(mv.getPosition()).getChildren()) {
+                                if (it.getType().name.equals("SimpleName"))
+                                    toMoveName = it.getLabel();
+                            }
+                            printLogWriter.println(mv.getParent().getChild(mv.getPosition()).toString() + " (" + toMoveName + ")");
                         } catch (IndexOutOfBoundsException e) {
                             printLogWriter.println(mv.getParent().toString());
                         }
+                        printLogWriter.println("from");
+                        printLogWriter.println(mv.getNode().getParent().toString());
                         printLogWriter.println();
                         int size = mv.getNode().getMetrics().size;
                         if (size >= 100)

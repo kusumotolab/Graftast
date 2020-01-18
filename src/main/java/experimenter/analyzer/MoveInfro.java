@@ -12,13 +12,14 @@ class MoveInfo {
     private final int commitNum;
     private final String content;
     private final String moveTo;
+    private final String moveFrom;
 
     private final int srcRangeStart;
     private final int srcRangeEnd;
     private final int dstRangeStart;
     private final int dstRangeEnd;
 
-    MoveInfo(String src, String dst, String dstOrig, int num, String i, int s, String content, String moveTo) {
+    MoveInfo(String src, String dst, String dstOrig, int num, String i, int s, String content, String moveTo, String moveFrom) {
         this.identifier = i;
         this.size = s;
         this.srcFileName = src;
@@ -27,6 +28,7 @@ class MoveInfo {
         this.commitNum = num;
         this.content = content;
         this.moveTo = moveTo;
+        this.moveFrom = moveFrom;
 
         Pattern p = Pattern.compile("\\[([0-9]+),([0-9]+)]");
         Matcher srcMatcher = p.matcher(content.split("\n")[0]);
