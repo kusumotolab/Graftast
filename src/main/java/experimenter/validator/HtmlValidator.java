@@ -46,8 +46,8 @@ public class HtmlValidator {
         log.forEach(revCommits::add);
         int index = 1;
         for (Container sample: list) {
-            RevCommit srcCommit = revCommits.get(sample.commitNum);
-            RevCommit dstCommit = revCommits.get(sample.commitNum - 1);
+            RevCommit dstCommit = revCommits.get(sample.commitNum);
+            RevCommit srcCommit = dstCommit.getParent(0);
 
             String srcContentOld = Util.getFileContents(repository, srcCommit, sample.srcFile);
             String dstContentNew = Util.getFileContents(repository, dstCommit, sample.dstFile);
