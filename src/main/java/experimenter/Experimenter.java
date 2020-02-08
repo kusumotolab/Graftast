@@ -232,7 +232,7 @@ class Compare implements Runnable {
             treeWalk.setRecursive(true);
 
             while (treeWalk.next()) {
-                if (treeWalk.getFileMode().equals(FileMode.GITLINK)) //Submoduleは無視
+                if (!treeWalk.getFileMode().equals(FileMode.REGULAR_FILE)) //Submoduleは無視
                     continue;
                 if (!treeWalk.getPathString().startsWith(relativePath)) //指定ディレクトリ以外は無視
                     continue;
