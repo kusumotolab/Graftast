@@ -1,19 +1,26 @@
 package graftast;
 
 public class FileContainer {
-    private final String fileName;
+
+    private final String path;
+    private final String name;
     private final String content;
 
-    public FileContainer(String name, String content) {
-        this.fileName = name;
+    public FileContainer(String path, String name, String content) {
+        this.path = path;
+        this.name = name;
         this.content = content;
+    }
+
+    public String getPath() {
+        return path;
     }
 
     public String getContent() {
         return content;
     }
 
-    public String getFileName() {
-        return fileName;
+    public String getName() {
+        return name;
     }
 }

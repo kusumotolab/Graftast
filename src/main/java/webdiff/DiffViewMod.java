@@ -60,7 +60,7 @@ public class DiffViewMod implements Renderable {
                     ._div()
                 ._div()
                 .render(new BootstrapFooterView())
-                .macros().javascript("/dist/diff.js")
+                .macros().javascript("/dist/Diff.js")
             ._body()
         ._html();
     }

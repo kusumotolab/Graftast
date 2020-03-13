@@ -31,10 +31,10 @@ import com.github.gumtreediff.gen.Registry;
 import com.github.gumtreediff.io.DirectoryComparator;
 import com.github.gumtreediff.tree.TreeContext;
 import com.github.gumtreediff.utils.Pair;
-import graftast.GraftastMain;
+import graftast.ProjectMatcher;
+import graftast.ProjectTreeGenerator;
 import org.rendersnake.HtmlCanvas;
 import org.rendersnake.Renderable;
-import graftast.SubtreeMatcher;
 import spark.Spark;
 
 import java.io.File;
@@ -45,11 +45,15 @@ import java.nio.file.Paths;
 
 import static spark.Spark.*;
 
-@Register(description = "a web diff client", options = WebDiffMod.Options.class, priority = Registry.Priority.HIGH)
+@Register(description = "a web Diff client", options = WebDiffMod.Options.class, priority = Registry.Priority.HIGH)
 public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
+
+    String type;
 
     public WebDiffMod(String[] args) {
         super(args);
+        if (args.length >= 3)
+            type = args[2];
     }
 
     static class Options extends AbstractDiffClient.Options {
@@ -102,7 +106,7 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
             if (comparator.isDirMode())
                 response.redirect("/list");
             else
-                response.redirect("/diff/0");
+                response.redirect("/Diff/0");
             return "";
         });
         get("/list", (request, response) -> {
@@ -112,18 +116,12 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
         get("/diff/:id", (request, response) -> {
             int id = Integer.parseInt(request.params(":id"));
             //Pair<File, File> pair = comparator.getModifiedFiles().get(id);
-            Pair<TreeContext, TreeContext> projectTreePair = new GraftastMain(opts.src, opts.dst).getProjectTreeContextPair(opts.src, opts.dst, "java", "tmp/srcSource", "tmp/dstSource");
+            Pair<TreeContext, TreeContext> projectTreePair = new ProjectTreeGenerator().getProjectTreeContextPair(opts.src, opts.dst, "java");
             Renderable view = new DiffViewMod(
-                    //pair.first, pair.second,
                     new File("tmp/srcSource"), new File("tmp/dstSource"),
-                    //this.getTreeContext(pair.first.getAbsolutePath()),
-                    //this.getProjectTreeContext(new File(opts.src).getAbsolutePath(), "tmp/srcSource"),
                     projectTreePair.first,
-                    //this.getTreeContext(pair.second.getAbsolutePath()),
-                    //this.getProjectTreeContext(new File(opts.dst).getAbsolutePath(), "tmp/dstSource"),
                     projectTreePair.second,
-                    //getMatcher(),
-                    new SubtreeMatcher(),
+                    new ProjectMatcher(),
                     new ChawatheScriptGenerator());
             return render(view);
         });

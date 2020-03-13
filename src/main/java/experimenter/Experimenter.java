@@ -5,6 +5,9 @@ import com.github.gumtreediff.actions.model.Action;
 import com.github.gumtreediff.actions.model.Move;
 import com.github.gumtreediff.tree.ITree;
 import com.github.gumtreediff.utils.Pair;
+import graftast.FileContainer;
+import graftast.GraftastMain;
+import graftast.ProjectTreeGenerator;
 import me.tongfei.progressbar.ProgressBar;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -21,8 +24,6 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.util.io.NullOutputStream;
-import graftast.FileContainer;
-import graftast.GraftastMain;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -147,16 +148,16 @@ class Compare implements Runnable {
         List<FileContainer> src = getFileContainers(srcCommit, args[0]); //oldProject
         List<FileContainer> dst = getFileContainers(dstCommit, args[0]); //newProject
 
-        GraftastMain pGenerator = new GraftastMain(src, dst);
+        GraftastMain graftastMain = new GraftastMain();
         Pair<ITree, ITree> projectTrees;
         try {
-            projectTrees = pGenerator.getProjectTreePair(src, dst, "java");
+            projectTrees = new ProjectTreeGenerator().getProjectTreePair(src, dst, "java");
         } catch (IOException e) {
             e.printStackTrace();
             return;
         }
 
-        EditScript editScript = pGenerator.calculateEditScript(projectTrees);
+        EditScript editScript = graftastMain.calculateEditScript(projectTrees);
 
         PrintWriter printLogWriter, printCSVWriter, printMoveInFile;
         try {
@@ -175,9 +176,9 @@ class Compare implements Runnable {
         for (Action action : editScript) {
             if (action instanceof Move) {
                 Move mv = (Move)action;
-                String srcFileName = pGenerator.getAffiliatedFileName(mv.getNode());
-                String dstFileName = pGenerator.getFinalDstFile(mv, editScript);
-                String dstFileNameOriginal = pGenerator.getAffiliatedFileName(mv.getParent());
+                String srcFileName = graftastMain.getAffiliatedFileName(mv.getNode());
+                String dstFileName = graftastMain.getFinalDstFile(mv, editScript);
+                String dstFileNameOriginal = graftastMain.getAffiliatedFileName(mv.getParent());
                 if (!srcFileName.equals(dstFileName)) {
                     if (!isFileRenamed(srcFileName, dstFileName)) { //ファイルがリネームされただけのものではない
                         printLogWriter.println(srcFileName + " -> " + dstFileName + " from " + dstFileNameOriginal);
@@ -243,7 +244,7 @@ class Compare implements Runnable {
                 String contents = outputStream.toString();
                 outputStream.close();
                 int insertIndex = getInsertIndex(containers, treeWalk.getNameString());
-                containers.add(insertIndex, new FileContainer(treeWalk.getNameString(), contents));
+                containers.add(insertIndex, new FileContainer(treeWalk.getNameString(), treeWalk.getPathString(), contents));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -253,7 +254,7 @@ class Compare implements Runnable {
 
     private int getInsertIndex(List<FileContainer> list, String str) {
         for (FileContainer fc: list) {
-            if (fc.getFileName().compareTo(str) > 0)
+            if (fc.getName().compareTo(str) > 0)
                 return list.indexOf(fc);
         }
         return list.size();
