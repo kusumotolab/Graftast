@@ -31,10 +31,10 @@ import com.github.gumtreediff.gen.Registry;
 import com.github.gumtreediff.io.DirectoryComparator;
 import com.github.gumtreediff.tree.TreeContext;
 import com.github.gumtreediff.utils.Pair;
+import graftast.GraftastMain;
 import org.rendersnake.HtmlCanvas;
 import org.rendersnake.Renderable;
-import pgenerator.PGenerator;
-import pgenerator.SubtreeMatcher;
+import graftast.SubtreeMatcher;
 import spark.Spark;
 
 import java.io.File;
@@ -112,7 +112,7 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
         get("/diff/:id", (request, response) -> {
             int id = Integer.parseInt(request.params(":id"));
             //Pair<File, File> pair = comparator.getModifiedFiles().get(id);
-            Pair<TreeContext, TreeContext> projectTreePair = new PGenerator(opts.src, opts.dst).getProjectTreeContextPair(opts.src, opts.dst, "java", "tmp/srcSource", "tmp/dstSource");
+            Pair<TreeContext, TreeContext> projectTreePair = new GraftastMain(opts.src, opts.dst).getProjectTreeContextPair(opts.src, opts.dst, "java", "tmp/srcSource", "tmp/dstSource");
             Renderable view = new DiffViewMod(
                     //pair.first, pair.second,
                     new File("tmp/srcSource"), new File("tmp/dstSource"),

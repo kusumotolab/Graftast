@@ -1,4 +1,4 @@
-package pgenerator;
+package graftast;
 
 import com.github.gumtreediff.matchers.MappingStore;
 import com.github.gumtreediff.matchers.Matcher;

@@ -1,4 +1,4 @@
-package pgenerator;
+package graftast;
 
 import com.github.gumtreediff.tree.ITree;
 import com.github.gumtreediff.tree.Tree;
@@ -36,7 +36,7 @@ public class ProjectTree extends Tree {
         /*if (tree instanceof ProjectTree)
             ((ProjectTree) tree).isomorphic = true;
         isomorphic = true; //事前の比較で一致したらフラグを立てる*/
-        //mappingID = PGenerator.generateNumber();
+        //mappingID = GraftastMain.generateNumber();
         //((ProjectTree)tree).mappingID = mappingID;
         return true;
     }

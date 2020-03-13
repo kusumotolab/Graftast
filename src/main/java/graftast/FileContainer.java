@@ -1,4 +1,4 @@
-package pgenerator;
+package graftast;
 
 public class FileContainer {
     private final String fileName;

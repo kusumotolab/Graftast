@@ -21,8 +21,8 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.util.io.NullOutputStream;
-import pgenerator.FileContainer;
-import pgenerator.PGenerator;
+import graftast.FileContainer;
+import graftast.GraftastMain;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -147,7 +147,7 @@ class Compare implements Runnable {
         List<FileContainer> src = getFileContainers(srcCommit, args[0]); //oldProject
         List<FileContainer> dst = getFileContainers(dstCommit, args[0]); //newProject
 
-        PGenerator pGenerator = new PGenerator(src, dst);
+        GraftastMain pGenerator = new GraftastMain(src, dst);
         Pair<ITree, ITree> projectTrees;
         try {
             projectTrees = pGenerator.getProjectTreePair(src, dst, "java");

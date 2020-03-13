@@ -1,12 +1,10 @@
-package pgenerator;
+package graftast;
 
 import com.github.gumtreediff.matchers.Mapping;
 import com.github.gumtreediff.matchers.MappingStore;
 import com.github.gumtreediff.matchers.Matcher;
 import com.github.gumtreediff.matchers.Matchers;
 import com.github.gumtreediff.tree.ITree;
-
-import java.util.Iterator;
 
 public class ProjectMatcher implements Matcher {
 

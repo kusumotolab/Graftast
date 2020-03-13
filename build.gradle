@@ -4,7 +4,7 @@ plugins {
     id 'idea'
 }
 
-mainClassName = 'pgenerator.PGenerator'
+mainClassName = 'graftast.GraftastMain'
 
 repositories {
     mavenCentral()

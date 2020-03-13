@@ -1,4 +1,4 @@
-package pgenerator;
+package graftast;
 
 import com.github.gumtreediff.actions.ChawatheScriptGenerator;
 import com.github.gumtreediff.actions.EditScript;
@@ -26,22 +26,22 @@ import java.util.Stack;
 import java.util.regex.Pattern;
 
 
-public class PGenerator {
+public class GraftastMain {
 
     private List<String> noChangedFiles = new LinkedList<>();
 
-    public PGenerator(String srcPath, String dstPath) {
+    public GraftastMain(String srcPath, String dstPath) {
         Run.initGenerators();
         getNoChangedFiles(srcPath, dstPath, "java");
     }
 
-    public PGenerator(List<FileContainer> src, List<FileContainer> dst) {
+    public GraftastMain(List<FileContainer> src, List<FileContainer> dst) {
         Run.initGenerators();
         getNoChangeFiles(src, dst);
     }
 
     public static void main(String[] args) {
-        PGenerator pGenerator = new PGenerator(args[0], args[1]);
+        GraftastMain pGenerator = new GraftastMain(args[0], args[1]);
         pGenerator.start(args);
     }
 
