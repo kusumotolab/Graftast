@@ -6,24 +6,40 @@ import java.util.List;
 
 public class GraftFileList {
 
-    private List<File> srcFiles = new LinkedList<>();
-    private List<File> dstFiles = new LinkedList<>();
+    private List<SourceElement> srcFiles = new LinkedList<>();
+    private List<SourceElement> dstFiles = new LinkedList<>();
 
     public GraftFileList() {}
 
-    public List<File> getSrcFiles() {
+    public List<SourceElement> getSrcFiles() {
         return srcFiles;
     }
 
-    public List<File> getDstFiles() {
+    public List<SourceElement> getDstFiles() {
         return dstFiles;
     }
 
-    public void addSrcFiles(File file) {
-        srcFiles.add(file);
+    public void addSrcFile(SourceElement se) {
+        srcFiles.add(se);
     }
 
-    public void addDstFiles(File file) {
-        dstFiles.add(file);
+    public void addSrcFile(File file) {
+        srcFiles.add(new SourceElementFile(file));
+    }
+
+    public void addSrcFile(FileContainer fileContainer) {
+        srcFiles.add(new SourceElementContainer(fileContainer));
+    }
+
+    public void addDstFile(SourceElement se) {
+        dstFiles.add(se);
+    }
+
+    public void addDstFile(File file) {
+        dstFiles.add(new SourceElementFile(file));
+    }
+
+    public  void addDstFile(FileContainer fileContainer) {
+        dstFiles.add(new SourceElementContainer(fileContainer));
     }
 }

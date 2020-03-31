@@ -11,21 +11,11 @@ import java.util.List;
 
 public class GraftFileSelector {
 
-    private File srcDir;
-    private File dstDir;
-    private String fileType;
-
-    public GraftFileSelector(String srcDir, String dstDir, String fileType) {
-        this.srcDir = new File(srcDir);
-        this.dstDir = new File(dstDir);
-        this.fileType = fileType;
-    }
-
-    public GraftFileList run() {
+    public GraftFileList run(String srcDir, String dstDir, String fileType) {
         GraftFileList graftFileList = new GraftFileList();
 
-        List<File> srcFiles = FileUtil.findAllFiles(srcDir, fileType);
-        List<File> dstFiles = FileUtil.findAllFiles(dstDir, fileType);
+        List<File> srcFiles = FileUtil.findAllFiles(new File(srcDir), fileType);
+        List<File> dstFiles = FileUtil.findAllFiles(new File(dstDir), fileType);
 
         List<File> srcUnchanged = new LinkedList<>();
         List<File> dstUnchanged = new LinkedList<>();
@@ -48,9 +38,33 @@ public class GraftFileSelector {
             }
         }
 
-        srcFiles.stream().filter(srcFile -> !srcUnchanged.contains(srcFile)).forEach(graftFileList::addSrcFiles);
-        dstFiles.stream().filter(dstFile -> !dstUnchanged.contains(dstFile)).forEach(graftFileList::addDstFiles);
+        srcFiles.stream().filter(srcFile -> !srcUnchanged.contains(srcFile)).forEach(graftFileList::addSrcFile);
+        dstFiles.stream().filter(dstFile -> !dstUnchanged.contains(dstFile)).forEach(graftFileList::addDstFile);
 
         return graftFileList;
+    }
+
+    public GraftFileList run(List<FileContainer> srcFiles, List<FileContainer> dstFiles, String fileType) {
+        GraftFileList graftFileList = new GraftFileList();
+
+        List<FileContainer> srcUnchanged = new LinkedList<>();
+        List<FileContainer> dstUnchanged = new LinkedList<>();
+
+        for (FileContainer srcFile: srcFiles) {
+            if (!srcFile.getName().endsWith(fileType))
+                continue;
+            for (FileContainer dstFile: dstFiles) {
+                if (!dstFile.getName().endsWith(fileType))
+                    continue;
+                if (Diff.diff(srcFile.getContent(), dstFile.getContent())) {
+                    srcUnchanged.add(srcFile);
+                    dstUnchanged.add(dstFile);
+                    break;
+                }
+            }
+        }
+        srcFiles.stream().filter(srcFile -> !srcUnchanged.contains(srcFile)).forEach(graftFileList::addSrcFile);
+        dstFiles.stream().filter(dstFile -> !dstUnchanged.contains(dstFile)).forEach(graftFileList::addDstFile);
+        return  graftFileList;
     }
 }

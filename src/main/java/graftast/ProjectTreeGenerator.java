@@ -4,9 +4,7 @@ import com.github.gumtreediff.gen.Generators;
 import com.github.gumtreediff.gen.TreeGenerator;
 import com.github.gumtreediff.tree.*;
 import com.github.gumtreediff.utils.Pair;
-import graftast.util.Diff;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -49,19 +47,19 @@ public class ProjectTreeGenerator {
 //    }
 
     public Pair<ITree, ITree> getProjectTreePair(String srcDir, String dstDir, String fileType) throws IOException {
-        GraftFileList graftFileList = new GraftFileSelector(srcDir, dstDir, fileType).run();
-        List<File> srcFiles = graftFileList.getSrcFiles();
-        List<File> dstFiles = graftFileList.getDstFiles();
+        GraftFileList graftFileList = new GraftFileSelector().run(srcDir, dstDir, fileType);
+        List<SourceElement> srcFiles = graftFileList.getSrcFiles();
+        List<SourceElement> dstFiles = graftFileList.getDstFiles();
         ITree srcTree = getProjectTree(srcFiles);
         ITree dstTree = getProjectTree(dstFiles);
         return new Pair<>(srcTree, dstTree);
     }
 
-    public ITree getProjectTree(List<File> files) throws IOException {
+    public ITree getProjectTree(List<SourceElement> sourceElements) throws IOException {
         ITree projectTree = new ProjectTree(TypeSet.type("CompilationUnit")); //土台となる木の元
-        for (File file: files) {
-            ITree it = Generators.getInstance().getTree(file.getAbsolutePath()).getRoot();
-            it.setLabel(file.getName());
+        for (SourceElement sourceElement: sourceElements) {
+            ITree it = getTree(sourceElement).getRoot();
+            it.setLabel(sourceElement.getName());
             projectTree.addChild(it);
         }
         return projectTree;
@@ -130,57 +128,21 @@ public class ProjectTreeGenerator {
     }
 
 
-    private void selector(List<FileContainer> srcList, List<FileContainer> dstList) {
-        for (FileContainer src: srcList) {
-            for (FileContainer dst: dstList) {
-                if (src.getName().equals(dst.getName())) {
-                    if (Diff.diff(src.getContent(), dst.getContent())) {
-                        srcList.remove(src);
-                        dstList.remove(dst);
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    public ITree getProjectTreeForContainer(List<FileContainer> containers) throws IOException {
-        ITree projectTree = new Tree(TypeSet.type("CompilationUnit")); //土台となる木の元
-        int totalLength = 0; //プロジェクト全体のLengthを記録．処理中は累積の長さになってる
-        for (FileContainer container: containers) {
-            ITree it = this.getTree(container).getRoot();
-            //it.setPos(totalLength);
-            //一番最後の子要素のlengthでそのファイルの実質の長さを求めている
-            //int length = it.getChild(it.getChildren().size() - 1).getLength() + it.getChild(it.getChildren().size() - 1).getPos();
-            //fixTreePosLength(it, totalLength);
-            //totalLength += length + 1;
-            it.setLabel(container.getName());
-            projectTree.addChild(it);
-        }
-        projectTree.setLength(totalLength);
-        //return convertProjectTree(projectTree, new ProjectTree(TypeSet.type("CompilationUnit")));
-        return projectTree;
-    }
-
-
     public Pair<ITree, ITree> getProjectTreePair(List<FileContainer> src, List<FileContainer> dst, String fileType) throws IOException {
-        selector(src, dst);
-        ITree srcTree = getProjectTreeForContainer(src);
-        ITree dstTree = getProjectTreeForContainer(dst);
+        GraftFileList graftFileList = new GraftFileSelector().run(src, dst, fileType);
+        ITree srcTree = getProjectTree(graftFileList.getSrcFiles());
+        ITree dstTree = getProjectTree(graftFileList.getDstFiles());
         return new Pair<>(srcTree, dstTree);
     }
 
 
-    private TreeContext getTree(FileContainer container) throws IOException {
-        TreeGenerator p = Generators.getInstance().get(container.getName());
+    private TreeContext getTree(SourceElement sourceElement) throws IOException {
+        TreeGenerator p = Generators.getInstance().get(sourceElement.getName());
         if (p == null) {
-            throw new UnsupportedOperationException("No generator found for file: " + container.getName());
+            throw new UnsupportedOperationException("No generator found for file: " + sourceElement.getName());
         } else {
-            return p.generateFrom().string(container.getContent());
+            return p.generateFrom().string(sourceElement.getContent());
         }
     }
 
-    private void typeFilter(List<FileContainer> containers, String type) {
-        containers.removeIf(fc -> !fc.getName().endsWith(type));
-    }
 }
