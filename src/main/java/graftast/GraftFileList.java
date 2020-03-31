@@ -39,7 +39,23 @@ public class GraftFileList {
         dstFiles.add(new SourceElementFile(file));
     }
 
-    public  void addDstFile(FileContainer fileContainer) {
+    public void addDstFile(FileContainer fileContainer) {
         dstFiles.add(new SourceElementContainer(fileContainer));
+    }
+
+    public SourceElement getSrcSourceElement(String name) {
+        for (SourceElement se: srcFiles) {
+            if (name.equals(se.getName()))
+                return se;
+        }
+        return null;
+    }
+
+    public SourceElement getDstSourceElement(String name) {
+        for (SourceElement se: dstFiles) {
+            if (name.equals(se.getName()))
+                return se;
+        }
+        return null;
     }
 }

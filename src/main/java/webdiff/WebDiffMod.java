@@ -31,6 +31,7 @@ import com.github.gumtreediff.gen.Registry;
 import com.github.gumtreediff.io.DirectoryComparator;
 import com.github.gumtreediff.tree.TreeContext;
 import com.github.gumtreediff.utils.Pair;
+import graftast.GraftFileList;
 import graftast.ProjectMatcher;
 import graftast.ProjectTreeGenerator;
 import org.rendersnake.HtmlCanvas;
@@ -57,7 +58,7 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
     }
 
     static class Options extends AbstractDiffClient.Options {
-        protected int defaultPort = Integer.parseInt(System.getProperty("gt.webdiff.port", "4567"));
+        protected int defaultPort = Integer.parseInt(System.getProperty("gt.web.port", "4567"));
         boolean stdin = true;
 
         @Override
@@ -115,10 +116,12 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
         });
         get("/diff/:id", (request, response) -> {
             int id = Integer.parseInt(request.params(":id"));
-            //Pair<File, File> pair = comparator.getModifiedFiles().get(id);
-            Pair<TreeContext, TreeContext> projectTreePair = new ProjectTreeGenerator(opts.src, opts.dst, "java").getProjectTreeContextPair();
+            ProjectTreeGenerator generator = new ProjectTreeGenerator(opts.src, opts.dst, "java");
+            Pair<TreeContext, TreeContext> projectTreePair = generator.getProjectTreeContextPair();
+            GraftFileList graftFileList = generator.getGraftFileList();
+            new TreeModifier(graftFileList).modify(projectTreePair);
             Renderable view = new DiffViewMod(
-                    new File("tmp/srcSource"), new File("tmp/dstSource"),
+                    graftFileList,
                     projectTreePair.first,
                     projectTreePair.second,
                     new ProjectMatcher(),

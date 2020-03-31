@@ -4,32 +4,28 @@ import com.github.gumtreediff.actions.Diff;
 import com.github.gumtreediff.actions.EditScriptGenerator;
 import com.github.gumtreediff.client.diff.web.BootstrapFooterView;
 import com.github.gumtreediff.client.diff.web.BootstrapHeaderView;
-import com.github.gumtreediff.client.diff.web.HtmlDiffs;
 import com.github.gumtreediff.matchers.MappingStore;
 import com.github.gumtreediff.matchers.Matcher;
 import com.github.gumtreediff.tree.TreeContext;
+import graftast.GraftFileList;
 import org.rendersnake.DocType;
 import org.rendersnake.HtmlCanvas;
 import org.rendersnake.Renderable;
 
-import java.io.File;
 import java.io.IOException;
 
 import static org.rendersnake.HtmlAttributesFactory.*;
 
 public class DiffViewMod implements Renderable {
-    private HtmlDiffs diffs;
+    private HtmlDiffsMod diffs;
 
-    private File fSrc;
+    private GraftFileList graftFileList;
 
-    private File fDst;
-
-    public DiffViewMod(File fSrc, File fDst, TreeContext src, TreeContext dst, Matcher matcher, EditScriptGenerator scriptGenerator) throws IOException {
-        this.fSrc = fSrc;
-        this.fDst = fDst;
+    public DiffViewMod(GraftFileList graftFileList, TreeContext src, TreeContext dst, Matcher matcher, EditScriptGenerator scriptGenerator) throws IOException {
+        this.graftFileList = graftFileList;
         MappingStore mappings = matcher.match(src.getRoot(), dst.getRoot());
         Diff diff = new Diff(src, dst, mappings, scriptGenerator.computeActions(mappings));
-        diffs = new HtmlDiffs(fSrc, fDst, diff);
+        diffs = new HtmlDiffsMod(graftFileList, diff);
         diffs.produce();
     }
 
@@ -46,13 +42,13 @@ public class DiffViewMod implements Renderable {
                     ._div()
                         .div(class_("row align-items-strech"))
                         .div(class_("col-lg-6 max-height"))
-                            .h5().content(fSrc.getName())
+                            .h5().content("SrcProject")
                             .div(style("height:100vh;overflow-auto;"))
                                 .pre(class_("pre max-height")).content(diffs.getSrcDiff(), false)
                             ._div()
                         ._div()
                         .div(class_("col-lg-6 max-height"))
-                            .h5().content(fDst.getName())
+                            .h5().content("DstProject")
                             .div(style("height:100vh;overflow-auto;"))
                                 .pre(class_("pre max-height")).content(diffs.getDstDiff(), false)
                             ._div()
