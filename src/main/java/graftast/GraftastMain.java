@@ -45,7 +45,7 @@ public class GraftastMain {
 
     public void diff(String srcDir, String dstDir, String fileType) throws IOException {
         //diffオプションが設定された時
-        Pair<ITree, ITree> projectTrees = new ProjectTreeGenerator().getProjectTreePair(srcDir, dstDir, fileType);
+        Pair<ITree, ITree> projectTrees = new ProjectTreeGenerator(srcDir, dstDir, fileType).getProjectTreePair();
         EditScript editScript = calculateEditScript(projectTrees);
         editScript.forEach(System.out::println);
     }

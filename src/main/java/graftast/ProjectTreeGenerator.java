@@ -46,8 +46,21 @@ public class ProjectTreeGenerator {
 //        return projectTree;
 //    }
 
-    public Pair<ITree, ITree> getProjectTreePair(String srcDir, String dstDir, String fileType) throws IOException {
-        GraftFileList graftFileList = new GraftFileSelector().run(srcDir, dstDir, fileType);
+    private GraftFileList graftFileList;
+
+    public ProjectTreeGenerator(String srcDir, String dstDir, String fileType) {
+        this.graftFileList = new GraftFileSelector().run(srcDir, dstDir, fileType);
+    }
+
+    public ProjectTreeGenerator(List<FileContainer> src, List<FileContainer> dst, String fileType) {
+        this.graftFileList = new GraftFileSelector().run(src, dst, fileType);
+    }
+
+    public GraftFileList getGraftFileList() {
+        return graftFileList;
+    }
+
+    public Pair<ITree, ITree> getProjectTreePair() throws IOException {
         List<SourceElement> srcFiles = graftFileList.getSrcFiles();
         List<SourceElement> dstFiles = graftFileList.getDstFiles();
         ITree srcTree = getProjectTree(srcFiles);
@@ -65,8 +78,8 @@ public class ProjectTreeGenerator {
         return projectTree;
     }
 
-    public Pair<TreeContext, TreeContext> getProjectTreeContextPair(String srcDir, String dstDir, String fileType) throws IOException {
-        Pair<ITree, ITree> projectTreePair = getProjectTreePair(srcDir, dstDir, fileType);
+    public Pair<TreeContext, TreeContext> getProjectTreeContextPair() throws IOException {
+        Pair<ITree, ITree> projectTreePair = getProjectTreePair();
         TreeContext srcTree = new TreeContext();
         TreeContext dstTree = new TreeContext();
         srcTree.setRoot(projectTreePair.first);
@@ -126,15 +139,6 @@ public class ProjectTreeGenerator {
     private void fixMetrics(ITree tree) {
         TreeVisitor.visitTree(tree, new TreeMetricComputer());
     }
-
-
-    public Pair<ITree, ITree> getProjectTreePair(List<FileContainer> src, List<FileContainer> dst, String fileType) throws IOException {
-        GraftFileList graftFileList = new GraftFileSelector().run(src, dst, fileType);
-        ITree srcTree = getProjectTree(graftFileList.getSrcFiles());
-        ITree dstTree = getProjectTree(graftFileList.getDstFiles());
-        return new Pair<>(srcTree, dstTree);
-    }
-
 
     private TreeContext getTree(SourceElement sourceElement) throws IOException {
         TreeGenerator p = Generators.getInstance().get(sourceElement.getName());

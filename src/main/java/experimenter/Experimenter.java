@@ -151,7 +151,7 @@ class Compare implements Runnable {
         GraftastMain graftastMain = new GraftastMain();
         Pair<ITree, ITree> projectTrees;
         try {
-            projectTrees = new ProjectTreeGenerator().getProjectTreePair(src, dst, "java");
+            projectTrees = new ProjectTreeGenerator(src, dst, "java").getProjectTreePair();
         } catch (IOException e) {
             e.printStackTrace();
             return;

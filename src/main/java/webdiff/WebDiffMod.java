@@ -116,7 +116,7 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
         get("/diff/:id", (request, response) -> {
             int id = Integer.parseInt(request.params(":id"));
             //Pair<File, File> pair = comparator.getModifiedFiles().get(id);
-            Pair<TreeContext, TreeContext> projectTreePair = new ProjectTreeGenerator().getProjectTreeContextPair(opts.src, opts.dst, "java");
+            Pair<TreeContext, TreeContext> projectTreePair = new ProjectTreeGenerator(opts.src, opts.dst, "java").getProjectTreeContextPair();
             Renderable view = new DiffViewMod(
                     new File("tmp/srcSource"), new File("tmp/dstSource"),
                     projectTreePair.first,
