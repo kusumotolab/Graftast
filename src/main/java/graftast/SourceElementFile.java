@@ -8,7 +8,7 @@ import java.nio.charset.Charset;
 
 public class SourceElementFile implements SourceElement {
 
-    private File file;
+    private final File file;
 
     public SourceElementFile(File file) {
         this.file = file;

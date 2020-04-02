@@ -92,8 +92,6 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
     @Override
     public void run() {
         DirectoryComparator comparator = new DirectoryComparator(opts.src, opts.dst);
-        //DirectoryComparator comparator = new DirectoryComparator(getTekitoAbsolutePath(opts.src), getTekitoAbsolutePath(opts.dst));
-        //DirectoryComparator comparator = new DirectoryComparator("tmp/srcSource", "tmp/dstSource");
         comparator.compare();
         configureSpark(comparator, opts.defaultPort);
         Spark.awaitInitialization();

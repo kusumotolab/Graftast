@@ -12,10 +12,7 @@ repositories {
 
 dependencies {
     compile fileTree(dir: 'lib/gumtree-2.1.3-SNAPSHOT/lib', include: '*.jar')
-    // https://mvnrepository.com/artifact/org.eclipse.jgit/org.eclipse.jgit
-    compile group: 'org.eclipse.jgit', name: 'org.eclipse.jgit', version: '5.5.1.201910021850-r'
-    // https://mvnrepository.com/artifact/org.webjars/google-diff-match-patch
-    //compile group: 'org.webjars', name: 'google-diff-match-patch', version: '895a9512bb'
-    compile group: 'com.sksamuel.diff', name: 'diff', version: '1.1.11'
-    compile group: 'me.tongfei', name: 'progressbar', version: '0.7.4'
+    implementation group: 'org.eclipse.jgit', name: 'org.eclipse.jgit', version: '5.5.1.201910021850-r'
+    implementation group: 'com.sksamuel.diff', name: 'diff', version: '1.1.11'
+    implementation group: 'me.tongfei', name: 'progressbar', version: '0.7.4'
 }

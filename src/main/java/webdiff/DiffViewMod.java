@@ -19,10 +19,7 @@ import static org.rendersnake.HtmlAttributesFactory.*;
 public class DiffViewMod implements Renderable {
     private HtmlDiffsMod diffs;
 
-    private GraftFileList graftFileList;
-
     public DiffViewMod(GraftFileList graftFileList, TreeContext src, TreeContext dst, Matcher matcher, EditScriptGenerator scriptGenerator) throws IOException {
-        this.graftFileList = graftFileList;
         MappingStore mappings = matcher.match(src.getRoot(), dst.getRoot());
         Diff diff = new Diff(src, dst, mappings, scriptGenerator.computeActions(mappings));
         diffs = new HtmlDiffsMod(graftFileList, diff);

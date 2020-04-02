@@ -8,6 +8,7 @@ import com.github.gumtreediff.utils.Pair;
 import graftast.FileContainer;
 import graftast.GraftastMain;
 import graftast.ProjectTreeGenerator;
+import graftast.util.TreeUtil;
 import me.tongfei.progressbar.ProgressBar;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -176,9 +177,9 @@ class Compare implements Runnable {
         for (Action action : editScript) {
             if (action instanceof Move) {
                 Move mv = (Move)action;
-                String srcFileName = graftastMain.getAffiliatedFileName(mv.getNode());
-                String dstFileName = graftastMain.getFinalDstFile(mv, editScript);
-                String dstFileNameOriginal = graftastMain.getAffiliatedFileName(mv.getParent());
+                String srcFileName = TreeUtil.getAffiliatedFileName(mv.getNode());
+                String dstFileName = TreeUtil.getFinalDstFile(mv, editScript);
+                String dstFileNameOriginal = TreeUtil.getAffiliatedFileName(mv.getParent());
                 if (!srcFileName.equals(dstFileName)) {
                     if (!isFileRenamed(srcFileName, dstFileName)) { //ファイルがリネームされただけのものではない
                         printLogWriter.println(srcFileName + " -> " + dstFileName + " from " + dstFileNameOriginal);

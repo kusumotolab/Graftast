@@ -2,7 +2,7 @@ package graftast;
 
 public class SourceElementContainer implements SourceElement {
 
-    private FileContainer fileContainer;
+    private final FileContainer fileContainer;
 
     public  SourceElementContainer(FileContainer fileContainer) {
         this.fileContainer = fileContainer;
