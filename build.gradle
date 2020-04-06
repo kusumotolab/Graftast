@@ -6,6 +6,8 @@ plugins {
 
 mainClassName = 'graftast.GraftastMain'
 
+version = '1.0'
+
 repositories {
     mavenCentral()
 }
