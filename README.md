@@ -1,4 +1,4 @@
-EN  [JP](https://github.com/kusumotolab/Graftast/README_JP.md)
+EN  [JP](https://github.com/kusumotolab/Graftast/blob/master/README_JP.md)
 
 # Graftast
 
