@@ -47,14 +47,15 @@ public class GraftFileSelector {
     public GraftFileList run(List<FileContainer> srcFiles, List<FileContainer> dstFiles, String fileType) {
         GraftFileList graftFileList = new GraftFileList();
 
+        srcFiles.removeIf(srcFile -> !srcFile.getName().endsWith(fileType));
+        dstFiles.removeIf(dstFile -> !dstFile.getName().endsWith(fileType));
+
         List<FileContainer> srcUnchanged = new LinkedList<>();
         List<FileContainer> dstUnchanged = new LinkedList<>();
 
         for (FileContainer srcFile: srcFiles) {
-            if (!srcFile.getName().endsWith(fileType))
-                continue;
             for (FileContainer dstFile: dstFiles) {
-                if (!dstFile.getName().endsWith(fileType))
+                if (!srcFile.getName().equals(dstFile.getName()))
                     continue;
                 if (Diff.diff(srcFile.getContent(), dstFile.getContent())) {
                     srcUnchanged.add(srcFile);
