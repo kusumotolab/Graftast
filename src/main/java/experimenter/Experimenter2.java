@@ -1,8 +1,12 @@
 package experimenter;
 
+import com.github.gumtreediff.actions.ChawatheScriptGenerator;
 import com.github.gumtreediff.actions.EditScript;
 import com.github.gumtreediff.actions.model.*;
 import com.github.gumtreediff.gen.jdt.JdtTreeGenerator;
+import com.github.gumtreediff.matchers.MappingStore;
+import com.github.gumtreediff.matchers.Matcher;
+import com.github.gumtreediff.matchers.Matchers;
 import com.github.gumtreediff.tree.ITree;
 import com.github.gumtreediff.utils.Pair;
 import graftast.FileContainer;
@@ -157,7 +161,7 @@ class Compare2 implements Callable<DiffResult> {
         List<FileContainer> dst = getFileContainers(dstCommit, args[0]); //newProject
 
         PrintWriter printWriterOrg, printWriterNew;
-        String allPath = args[1] + File.pathSeparator + "all" + File.pathSeparator;
+        String allPath = args[1] + File.separator + "all" + File.separator;
         new File(allPath).mkdir();
 
         try {
@@ -179,7 +183,9 @@ class Compare2 implements Callable<DiffResult> {
                     try {
                         ITree srcTree = new JdtTreeGenerator().generateFrom().string(srcFC.getContent()).getRoot();
                         ITree dstTree = new JdtTreeGenerator().generateFrom().string(dstFC.getContent()).getRoot();
-                        EditScript editScript = new GraftastMain().calculateEditScript(new Pair<>(srcTree, dstTree));
+                        Matcher m = Matchers.getInstance().getMatcher();
+                        MappingStore mappings = m.match(srcTree, dstTree);
+                        EditScript editScript = new ChawatheScriptGenerator().computeActions(mappings);
                         for (Action action: editScript) {
                             if (action instanceof Delete)
                                 deleteOrg += 1;
