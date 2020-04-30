@@ -45,7 +45,7 @@ public class GraftFileList {
 
     public SourceElement getSrcSourceElement(String name) {
         for (SourceElement se: srcFiles) {
-            if (name.equals(se.getName()))
+            if (name.equals(se.getName()) || name.equals(se.getPath()))
                 return se;
         }
         return null;
@@ -53,7 +53,7 @@ public class GraftFileList {
 
     public SourceElement getDstSourceElement(String name) {
         for (SourceElement se: dstFiles) {
-            if (name.equals(se.getName()))
+            if (name.equals(se.getName()) || name.equals(se.getPath()))
                 return se;
         }
         return null;
