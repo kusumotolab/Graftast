@@ -35,7 +35,7 @@ public class FileUtil {
 
     private static void insertAdd(List<File> list, File file) {
         for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).getName().compareTo(file.getName()) > 0) {
+            if (list.get(i).getAbsolutePath().compareTo(file.getAbsolutePath()) > 0) {
                 list.add(i, file);
                 return;
             }

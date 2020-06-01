@@ -303,7 +303,7 @@ class Compare2 implements Callable<DiffResult> {
                 loader.copyTo(outputStream);
                 String contents = outputStream.toString();
                 outputStream.close();
-                int insertIndex = getInsertIndex(containers, treeWalk.getNameString());
+                int insertIndex = getInsertIndex(containers, treeWalk.getPathString());
                 containers.add(insertIndex, new FileContainer(treeWalk.getNameString(), treeWalk.getPathString(), contents));
             }
         } catch (IOException e) {
@@ -314,7 +314,7 @@ class Compare2 implements Callable<DiffResult> {
 
     private int getInsertIndex(List<FileContainer> list, String str) {
         for (FileContainer fc : list) {
-            if (fc.getName().compareTo(str) > 0)
+            if (fc.getPath().compareTo(str) > 0)
                 return list.indexOf(fc);
         }
         return list.size();
