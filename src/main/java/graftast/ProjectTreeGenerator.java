@@ -36,7 +36,7 @@ public class ProjectTreeGenerator {
         ITree projectTree = new Tree(TypeSet.type("CompilationUnit")); //土台となる木の元
         for (SourceElement sourceElement: sourceElements) {
             ITree it = getTree(sourceElement).getRoot();
-            it.setLabel(sourceElement.getName());
+            it.setLabel(sourceElement.getProjectRelativePath());
             projectTree.addChild(it);
         }
         return projectTree;

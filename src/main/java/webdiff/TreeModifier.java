@@ -25,6 +25,7 @@ public class TreeModifier {
             fixTreePosLength(iTree, length);
             length += se.getContent().length();
         }
+        srcTree.setLength(length);
 
         ITree dstTree = treeContextPair.second.getRoot();
         length = 0;
@@ -36,6 +37,7 @@ public class TreeModifier {
             fixTreePosLength(iTree, length);
             length += se.getContent().length();
         }
+        dstTree.setLength(length);
     }
 
     /**

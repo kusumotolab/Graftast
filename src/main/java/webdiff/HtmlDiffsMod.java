@@ -97,7 +97,7 @@ public final class HtmlDiffsMod {
             builder1.append("\n")
                     .append("--------------------------------------------------\n")
                     .append("\n")
-                    .append(se.getName()).append("\n")
+                    .append(se.getProjectRelativePath()).append("\n")
                     .append("\n")
                     .append("--------------------------------------------------\n")
                     .append(se.getContent());
@@ -123,7 +123,7 @@ public final class HtmlDiffsMod {
             builder2.append("\n")
                     .append("--------------------------------------------------\n")
                     .append("\n")
-                    .append(se.getName()).append("\n")
+                    .append(se.getProjectRelativePath()).append("\n")
                     .append("\n")
                     .append("--------------------------------------------------\n")
                     .append(se.getContent());
