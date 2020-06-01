@@ -23,8 +23,8 @@ public class GraftFileList {
         srcFiles.add(se);
     }
 
-    public void addSrcFile(File file) {
-        srcFiles.add(new SourceElementFile(file));
+    public void addSrcFile(File file, String projectRoot) {
+        srcFiles.add(new SourceElementFile(file, projectRoot));
     }
 
     public void addSrcFile(FileContainer fileContainer) {
@@ -35,8 +35,8 @@ public class GraftFileList {
         dstFiles.add(se);
     }
 
-    public void addDstFile(File file) {
-        dstFiles.add(new SourceElementFile(file));
+    public void addDstFile(File file, String projectRoot) {
+        dstFiles.add(new SourceElementFile(file, projectRoot));
     }
 
     public void addDstFile(FileContainer fileContainer) {
@@ -45,7 +45,7 @@ public class GraftFileList {
 
     public SourceElement getSrcSourceElement(String name) {
         for (SourceElement se: srcFiles) {
-            if (name.equals(se.getName()) || name.equals(se.getPath()))
+            if (name.equals(se.getName()) || name.equals(se.getProjectRelativePath()))
                 return se;
         }
         return null;
@@ -53,7 +53,7 @@ public class GraftFileList {
 
     public SourceElement getDstSourceElement(String name) {
         for (SourceElement se: dstFiles) {
-            if (name.equals(se.getName()) || name.equals(se.getPath()))
+            if (name.equals(se.getName()) || name.equals(se.getProjectRelativePath()))
                 return se;
         }
         return null;

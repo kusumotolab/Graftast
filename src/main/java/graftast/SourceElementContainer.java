@@ -9,7 +9,12 @@ public class SourceElementContainer implements SourceElement {
     }
 
     @Override
-    public String getPath() {
+    public String getProjectRelativePath() {
+        return fileContainer.getPath();
+    }
+
+    @Override
+    public String getAbsolutePath() {
         return fileContainer.getPath();
     }
 

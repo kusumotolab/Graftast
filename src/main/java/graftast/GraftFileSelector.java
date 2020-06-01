@@ -38,8 +38,8 @@ public class GraftFileSelector {
             }
         }
 
-        srcFiles.stream().filter(srcFile -> !srcUnchanged.contains(srcFile)).forEach(graftFileList::addSrcFile);
-        dstFiles.stream().filter(dstFile -> !dstUnchanged.contains(dstFile)).forEach(graftFileList::addDstFile);
+        srcFiles.stream().filter(srcFile -> !srcUnchanged.contains(srcFile)).forEach(srcFile -> graftFileList.addSrcFile(srcFile, srcDir));
+        dstFiles.stream().filter(dstFile -> !dstUnchanged.contains(dstFile)).forEach(dstFile -> graftFileList.addDstFile(dstFile, dstDir));
 
         return graftFileList;
     }

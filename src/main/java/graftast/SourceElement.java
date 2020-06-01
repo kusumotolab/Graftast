@@ -2,7 +2,9 @@ package graftast;
 
 public interface SourceElement {
 
-    String getPath();
+    String getProjectRelativePath();
+
+    String getAbsolutePath();
 
     String getName();
 

@@ -9,14 +9,22 @@ import java.nio.charset.Charset;
 public class SourceElementFile implements SourceElement {
 
     private final File file;
+    private final String projectRelativePath;
 
-    public SourceElementFile(File file) {
+    public SourceElementFile(File file, String projectRoot) {
         this.file = file;
+        String tmp = file.getAbsolutePath().substring(file.getAbsolutePath().indexOf(projectRoot) + projectRoot.length());
+        projectRelativePath = tmp.charAt(0) == File.separatorChar ? tmp.substring(1) : tmp;
     }
 
     @Override
-    public String getPath() {
-        return file.getPath();
+    public String getProjectRelativePath() {
+        return projectRelativePath;
+    }
+
+    @Override
+    public String getAbsolutePath() {
+        return file.getAbsolutePath();
     }
 
     @Override
