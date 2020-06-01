@@ -158,7 +158,9 @@ class Compare2 implements Callable<DiffResult> {
         if (parentCount != 1) //マージコミットなどはスルー
             return new DiffResult();
         List<FileContainer> src = getFileContainers(srcCommit, args[0]); //oldProject
+        src.removeIf(file -> !file.getName().endsWith("java"));
         List<FileContainer> dst = getFileContainers(dstCommit, args[0]); //newProject
+        dst.removeIf(file -> !file.getName().endsWith("java"));
 
         PrintWriter printWriterOrg, printWriterNew;
         String allPath = args[1] + File.separator + "all" + File.separator;
@@ -174,10 +176,8 @@ class Compare2 implements Callable<DiffResult> {
         // 既存
         int deleteOrg = 0, insertOrg = 0, moveOrg = 0, updateOrg = 0;
         for (FileContainer srcFC: src) {
-            if (!srcFC.getName().endsWith("java")) continue;
             for (FileContainer dstFC: dst) {
-                if (!dstFC.getName().endsWith("java")) continue;
-                if (srcFC.getName().equals(dstFC.getName())) {
+                if (srcFC.getPath().equals(dstFC.getPath())) {
                     if (Diff.diff(srcFC.getContent(), dstFC.getContent()))
                         continue;
                     try {
@@ -210,7 +210,8 @@ class Compare2 implements Callable<DiffResult> {
         GraftastMain graftastMain = new GraftastMain();
         Pair<ITree, ITree> projectTrees;
         try {
-            projectTrees = new ProjectTreeGenerator(src, dst, "java").getProjectTreePair();
+            ProjectTreeGenerator projectTreeGenerator = new ProjectTreeGenerator(src, dst, "java");
+            projectTrees = projectTreeGenerator.getProjectTreePair();
         } catch (IOException e) {
             e.printStackTrace();
             return new DiffResult();

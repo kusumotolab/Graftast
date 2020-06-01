@@ -23,7 +23,7 @@ public class MoveAnalyzer {
         List<MoveInfo> moveInfos = new LinkedList<>();
         List<MoveType> moveTypes = new LinkedList<>();
         for (File f: files) {
-            if (!f.getPath().endsWith(".csv") && !f.getName().equals("moveInFile")) {
+            if (f.getName().matches("[0-9]+")) {
                 int commitNum = Integer.parseInt(f.getName().replace(".csv",""));
                 List<String> results = Files.readAllLines(Paths.get(f.getPath()));
                 for (int i = 0; i < results.size();) {
@@ -106,7 +106,31 @@ public class MoveAnalyzer {
             } else {
                 System.out.println("Usage: option | -a identifier size seed: Show detail about some(size) random move.");
             }
+        } else if (args[1].equals("-b")) {
+            long count = moveInfos.stream()
+                    .filter(m -> isTarget(m.getIdentifier()))
+                    //.filter(m -> !m.getIdentifier().equals("ImportDeclaration"))
+                    //.filter(m -> !m.getIdentifier().equals("SimpleName"))
+                    //.filter(m -> !m.getIdentifier().equals("SimpleType"))
+                    .filter(m -> m.getSrcFileName().contains("Util") || m.getDstFileName().contains("Util") || m.getSrcFileName().contains("Helper") || m.getDstFileName().contains("Helper"))
+                    .count();
+            System.out.println(count);
+//                    .forEach(m -> System.out.println(m.getSize()));
         }
+    }
+
+    private static boolean isTarget(String identifier) {
+        if (identifier.equals("MethodDeclaration"))
+            return true;
+        else if (identifier.equals("WhileStatement"))
+            return true;
+        else if (identifier.equals("ForStatement"))
+            return true;
+        else if (identifier.equals("IfStatement"))
+            return true;
+        else if (identifier.equals("Block"))
+            return true;
+        return false;
     }
 
     private static String getOutline(List<MoveInfo> moveInfos) {
