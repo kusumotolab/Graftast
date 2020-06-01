@@ -68,4 +68,23 @@ public class GraftFileSelector {
         dstFiles.stream().filter(dstFile -> !dstUnchanged.contains(dstFile)).forEach(graftFileList::addDstFile);
         return  graftFileList;
     }
+
+    public GraftFileList run2(List<FileContainer> srcFiles, List<FileContainer> dstFiles, String fileType) {
+        GraftFileList graftFileList = new GraftFileList();
+
+        srcFiles.removeIf(srcFile -> !srcFile.getName().endsWith(fileType));
+        dstFiles.removeIf(dstFile -> !dstFile.getName().endsWith(fileType));
+
+        for (FileContainer srcFile: srcFiles) {
+            for (FileContainer dstFile: dstFiles) {
+                if (!srcFile.getPath().equals(dstFile.getPath()))
+                    continue;
+                if (!Diff.diff(srcFile.getContent(), dstFile.getContent())) {
+                    graftFileList.addSrcFile(srcFile);
+                    graftFileList.addDstFile(dstFile);
+                }
+            }
+        }
+        return graftFileList;
+    }
 }
