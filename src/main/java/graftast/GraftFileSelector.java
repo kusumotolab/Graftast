@@ -55,7 +55,7 @@ public class GraftFileSelector {
 
         for (FileContainer srcFile: srcFiles) {
             for (FileContainer dstFile: dstFiles) {
-                if (!srcFile.getName().equals(dstFile.getName()))
+                if (!srcFile.getPath().equals(dstFile.getPath()))
                     continue;
                 if (Diff.diff(srcFile.getContent(), dstFile.getContent())) {
                     srcUnchanged.add(srcFile);
