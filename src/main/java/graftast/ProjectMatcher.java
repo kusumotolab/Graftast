@@ -5,6 +5,7 @@ import com.github.gumtreediff.matchers.MappingStore;
 import com.github.gumtreediff.matchers.Matcher;
 import com.github.gumtreediff.matchers.Matchers;
 import com.github.gumtreediff.tree.ITree;
+import com.github.gumtreediff.tree.TreeMetrics;
 
 public class ProjectMatcher implements Matcher {
 
@@ -15,8 +16,12 @@ public class ProjectMatcher implements Matcher {
         for (ITree sit : src.getChildren()) {
             for (ITree dit : dst.getChildren()) {
                 if (sit.getLabel().equals(dit.getLabel())) {
+                    sit.setParent(null);
+                    dit.setParent(null);
                     mappingStore.addMapping(sit, dit);
                     m.match(sit, dit, mappingStore); //先に同じファイル同士でマッチング
+                    sit.setParent(src);
+                    dit.setParent(dst);
                 }
             }
         }
