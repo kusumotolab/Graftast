@@ -6,15 +6,17 @@
 
 Graft(接木) ---複数のASTをまとめて1つのASTを構築する、という手法から"ASTの接木"→"Graft AST"の名前がつきました。
 
-## 動作条件
+## 動作条件（jarを実行する場合）
 
 JDK8+
+GumTree2.1.3
 
 ---
 
 ## インストール方法
 
-Zipファイルを[こちら](https://github.com/kusumotolab/Graftast/releases/tag/v1.0)からダウンロードしてください。
+Zipファイルを[こちら](https://github.com/kusumotolab/Graftast/releases/tag/v1.0)からダウンロードしてください（バイナリ版）。
+ソースコードからjarを生成するにはGraftast/lib/にGumTreeのjarを置いてください。
 
 ---
 

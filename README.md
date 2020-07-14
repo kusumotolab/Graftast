@@ -4,15 +4,17 @@ EN  [JP](https://github.com/kusumotolab/Graftast/blob/master/README_JP.md)
 
 Graftast is an extension tool of [GumTree](https://github.com/GumTreeDiff/gumtree). Comparing targets are expanded from single file to multiple files.
 
-## Requirement
+## Requirement (Using jar)
 
 JDK8+
+GumTree 2.1.3(Build your self)
 
 ---
 
 ## Installation
 
-You can download zip [here](https://github.com/kusumotolab/Graftast/releases/tag/v1.0).
+You can download zip [here](https://github.com/kusumotolab/Graftast/releases/tag/v1.0)(Binary version).
+Or if you build from source code, please deploy jar files of GumTree into Graftast/lib/ .
 
 ---
 
@@ -81,7 +83,7 @@ Pair<ITree, ITree> projectTrees = new ProjectTreeGenerator(srcDir, dstDir, ".jav
 EditScript editScript = graftastMain.calcurateEditScript(projectTrees);
 ```
 
-Or
+or
 
 ```java
 Run.initGenerators();
