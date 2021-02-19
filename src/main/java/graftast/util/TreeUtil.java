@@ -4,14 +4,14 @@ import com.github.gumtreediff.actions.EditScript;
 import com.github.gumtreediff.actions.model.Action;
 import com.github.gumtreediff.actions.model.Move;
 import com.github.gumtreediff.tree.FakeTree;
-import com.github.gumtreediff.tree.ITree;
+import com.github.gumtreediff.tree.Tree;
 
 import java.util.Stack;
 
 public class TreeUtil {
 
-    public static String getAffiliatedFileName(ITree it) {
-        ITree parent = it.getParent();
+    public static String getAffiliatedFileName(Tree it) {
+        Tree parent = it.getParent();
         if (parent == null)
             return it.getLabel();
         while (!parent.isRoot() && !(parent.getParent() instanceof FakeTree)) {
@@ -21,7 +21,7 @@ public class TreeUtil {
         return it.getLabel();
     }
 
-    public static ITree getRoot(ITree tree) {
+    public static Tree getRoot(Tree tree) {
         if (!tree.isRoot())
             return getRoot(tree.getParent());
         else
@@ -29,7 +29,7 @@ public class TreeUtil {
     }
 
     public static String getFinalDstFile(Move mv, EditScript editScript) {
-        for (ITree tree = mv.getParent(); !tree.isRoot(); tree = tree.getParent()) {
+        for (Tree tree = mv.getParent(); !tree.isRoot(); tree = tree.getParent()) {
             for (Action action: editScript) {
                 if (action instanceof Move) {
                     if (action.getNode() == tree) {
@@ -42,14 +42,14 @@ public class TreeUtil {
     }
 
     //TODO 最終的な移動先を知るメソッドを作る．未完成
-    private static ITree getFinalDst(Move mv, EditScript editScript) {
+    private static Tree getFinalDst(Move mv, EditScript editScript) {
         Stack<Integer> stack = new Stack<>();
         stack.push(mv.getPosition());
-        for (ITree tree = mv.getParent(); !tree.isRoot(); tree = tree.getParent()) {
+        for (Tree tree = mv.getParent(); !tree.isRoot(); tree = tree.getParent()) {
             for (Action action: editScript) {
                 if (action instanceof Move) {
                     if (action.getNode() == tree) {
-                        ITree dst = getFinalDst((Move)action, editScript);
+                        Tree dst = getFinalDst((Move)action, editScript);
                         while (!stack.isEmpty()) {
                             try {
                                 dst = dst.getChild(stack.pop());

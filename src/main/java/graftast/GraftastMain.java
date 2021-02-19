@@ -5,7 +5,7 @@ import com.github.gumtreediff.actions.EditScript;
 import com.github.gumtreediff.actions.EditScriptGenerator;
 import com.github.gumtreediff.client.Run;
 import com.github.gumtreediff.matchers.MappingStore;
-import com.github.gumtreediff.tree.ITree;
+import com.github.gumtreediff.tree.Tree;
 import com.github.gumtreediff.utils.Pair;
 import webdiff.WebDiffMod;
 
@@ -41,7 +41,7 @@ public class GraftastMain {
 
     public void diff(String srcDir, String dstDir, String fileType) throws IOException {
         //diffオプションが設定された時
-        Pair<ITree, ITree> projectTrees = new ProjectTreeGenerator(srcDir, dstDir, fileType).getProjectTreePair();
+        Pair<Tree, Tree> projectTrees = new ProjectTreeGenerator(srcDir, dstDir, fileType).getProjectTreePair();
         EditScript editScript = calculateEditScript(projectTrees);
         editScript.forEach(System.out::println);
     }
@@ -62,16 +62,16 @@ public class GraftastMain {
         System.out.println("Calculate Time: " + time);
     }
 
-    public EditScript calculateEditScript(Pair<ITree, ITree> projectTrees) {
+    public EditScript calculateEditScript(Pair<Tree, Tree> projectTrees) {
         MappingStore mappingStore = getMappings(projectTrees);
         EditScriptGenerator editScriptGenerator;
         editScriptGenerator = new ChawatheScriptGenerator();
         return editScriptGenerator.computeActions(mappingStore);
     }
 
-    public MappingStore getMappings(Pair<ITree, ITree> projectTrees) {
-        ITree srcProject = projectTrees.first;
-        ITree dstProject = projectTrees.second;
+    public MappingStore getMappings(Pair<Tree, Tree> projectTrees) {
+        Tree srcProject = projectTrees.first;
+        Tree dstProject = projectTrees.second;
         return new ProjectMatcher().match(srcProject, dstProject);
     }
 
