@@ -25,7 +25,7 @@ public class Util {
             while (treeWalk.next()) {
                 if (treeWalk.getFileMode().equals(FileMode.GITLINK)) //Submoduleは無視
                     continue;
-                if (!treeWalk.getNameString().equals(file)) //指定ディレクトリ以外は無視
+                if (!treeWalk.getPathString().equals(file)) //指定ディレクトリ以外は無視
                     continue;
                 ObjectLoader loader;
                 loader = repository.open(treeWalk.getObjectId(0));

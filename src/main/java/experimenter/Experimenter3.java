@@ -194,14 +194,26 @@ class Compare3 implements Callable<List<Double>> {
                     if (!isFileRenamed(srcFileName, dstFileName)) { //ファイルがリネームされただけのものではない
                         ITree srcNode = mv.getNode();
                         ITree srcNodeParent = srcNode.getParent();
-                        srcNode.setParent(null);
-                        ITree dstNode = mv.getParent().getChild(mv.getPosition());
+                        ITree dstNode;
+                        try {
+                            dstNode = mv.getParent().getChild(mv.getPosition());
+                        } catch (IndexOutOfBoundsException e) {
+                            System.out.println("index");
+                            continue;
+                        }
                         ITree dstNodeParent = dstNode.getParent();
+                        srcNode.setParent(null);
                         dstNode.setParent(null);
 
-                        Matcher matcher = Matchers.getInstance().getMatcher();
-                        MappingStore mappingStore = matcher.match(srcNode, dstNode);
-                        EditScript actions = new ChawatheScriptGenerator().computeActions(mappingStore);
+                        EditScript actions;
+                        try {
+                            Matcher matcher = Matchers.getInstance().getMatcher();
+                            MappingStore mappingStore = matcher.match(srcNode, dstNode);
+                            actions = new ChawatheScriptGenerator().computeActions(mappingStore);
+                        }  catch (NullPointerException e) {
+                            System.out.println("null");
+                            continue;
+                        }
                         double similarity = 1 - ((double) actions.size() / (double) (srcNode.getMetrics().size + dstNode.getMetrics().size));
                         similarities.add(similarity);
                         if (similarity <= 0.5)

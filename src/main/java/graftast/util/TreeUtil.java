@@ -12,6 +12,8 @@ public class TreeUtil {
 
     public static String getAffiliatedFileName(ITree it) {
         ITree parent = it.getParent();
+        if (parent == null)
+            return it.getLabel();
         while (!parent.isRoot() && !(parent.getParent() instanceof FakeTree)) {
             it = parent;
             parent = parent.getParent();

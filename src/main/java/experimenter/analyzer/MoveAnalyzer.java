@@ -1,5 +1,11 @@
 package experimenter.analyzer;
 
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -27,9 +33,9 @@ public class MoveAnalyzer {
                 int commitNum = Integer.parseInt(f.getName().replace(".csv",""));
                 List<String> results = Files.readAllLines(Paths.get(f.getPath()));
                 for (int i = 0; i < results.size();) {
-                    String src = results.get(i).split(" ")[0];
-                    String dst = results.get(i).split(" ")[2];
-                    String dstOriginal = results.get(i).split(" ")[4];
+                    String src = results.get(i).split(" -> ")[0];
+                    String dst = results.get(i).split(" from ")[1];
+                    String dstOriginal = results.get(i).split(" from ")[0].split(" -> ")[1];
                     i += 4;
                     String identifier = results.get(i).split(" ")[0];
                     int size = 0;
@@ -75,8 +81,23 @@ public class MoveAnalyzer {
             if (args.length >= 3) {
                 String identifier = args[2];
                 List<MoveInfo> filteredMove = new LinkedList<>();
+                List<String> commits = Files.readAllLines(Paths.get("C:\\Users\\a-fujimt\\Lab\\gumtreeExperiment\\tomcat\\commits.txt"));
+                final Repository repository = new FileRepositoryBuilder()
+                        .findGitDir(new File("C:\\Users\\a-fujimt\\Lab\\gumtreeExperiment\\tomcat\\tomcat"))
+                        .build();
+                final Git git = new Git(repository);
+                Iterable<RevCommit> log = null;
+                try {
+                    log = git.log().call();
+                } catch (GitAPIException e) {
+                    e.printStackTrace();
+                }
+                List<RevCommit> revCommits = new ArrayList<>();
+                log.forEach(revCommits::add);
                 for (MoveInfo m: moveInfos) {
-                    if (identifier.equals(m.getIdentifier()))
+                    //if (identifier.equals(m.getIdentifier()) && m.getSize() >= 50)
+                    //if (revCommits.get(m.getCommitNum()).getName().startsWith("41c2f61e2d"))
+                    if (m.getSize() >= 5 && commits.contains(revCommits.get(m.getCommitNum()).getName()))
                         filteredMove.add(m);
                 }
                 int seed;
@@ -88,7 +109,7 @@ public class MoveAnalyzer {
                     size = Integer.parseInt(args[3]);
                     seed = 0;
                 } else {
-                    size = 20;
+                    size = 200000;
                     seed = 0;
                 }
                 Random random = new Random(seed);
