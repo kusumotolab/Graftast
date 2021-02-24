@@ -70,7 +70,7 @@ public final class VanillaDiffHtmlBuilderMod {
     }
 
     public void produce() throws IOException {
-        GraftFileList graftFileList = new GraftFileSelector().run(fSrc.getAbsolutePath(), fDst.getAbsolutePath(), fileType);
+        GraftFileList graftFileList = new GraftFileSelector().run(fSrc, fDst, fileType);
         Pair<TreeContext, TreeContext> treePair = new Pair<>(diff.src, diff.dst);
         new TreeModifier(graftFileList).modify(treePair);
 

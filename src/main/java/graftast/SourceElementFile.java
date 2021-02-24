@@ -11,9 +11,9 @@ public class SourceElementFile implements SourceElement {
     private final File file;
     private final String projectRelativePath;
 
-    public SourceElementFile(File file, String projectRoot) {
+    public SourceElementFile(File file, File projectRoot) {
         this.file = file;
-        String tmp = file.getAbsolutePath().substring(file.getAbsolutePath().indexOf(projectRoot) + projectRoot.length());
+        String tmp = file.getAbsolutePath().substring(projectRoot.getAbsolutePath().length());
         projectRelativePath = tmp.charAt(0) == File.separatorChar ? tmp.substring(1) : tmp;
     }
 

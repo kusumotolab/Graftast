@@ -23,7 +23,7 @@ public class GraftFileList {
         srcFiles.add(se);
     }
 
-    public void addSrcFile(File file, String projectRoot) {
+    public void addSrcFile(File file, File projectRoot) {
         srcFiles.add(new SourceElementFile(file, projectRoot));
     }
 
@@ -35,7 +35,7 @@ public class GraftFileList {
         dstFiles.add(se);
     }
 
-    public void addDstFile(File file, String projectRoot) {
+    public void addDstFile(File file, File projectRoot) {
         dstFiles.add(new SourceElementFile(file, projectRoot));
     }
 
