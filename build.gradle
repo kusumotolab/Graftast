@@ -27,7 +27,7 @@ dependencies {
     implementation group: 'com.github.gumtreediff', name: 'gen.jdt', version: '3.0.0-beta1'
     implementation group: 'com.github.gumtreediff', name: 'gen.javaparser', version: '3.0.0-beta1'
     implementation group: 'com.github.gumtreediff', name: 'gen.antlr3-antlr', version: '3.0.0-beta1'
-    implementation group: 'com.github.gumtreediff', name: 'gen.antlr', version: '3.0.0-beta1'
+    implementation group: 'com.github.gumtreediff', name: 'gen.antlr3', version: '3.0.0-beta1'
     implementation group: 'com.github.gumtreediff', name: 'gen.antlr3-php', version: '3.0.0-beta1'
     implementation group: 'com.github.gumtreediff', name: 'gen.antlr3-xml', version: '3.0.0-beta1'
     implementation group: 'com.github.gumtreediff', name: 'gen.antlr4', version: '3.0.0-beta1'
