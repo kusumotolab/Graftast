@@ -16,23 +16,27 @@
  *
  * Copyright 2011-2015 Jean-Rémy Falleri <jr.falleri@gmail.com>
  * Copyright 2011-2015 Floréal Morandat <florealm@gmail.com>
+ *
+ * This software is modified on Feb. 2021.
+ * Copyright 2021 Akira Fujimoto <a-fujimt@ist.osaka-u.ac.jp>
  */
 
 package webdiff;
 
-import com.github.gumtreediff.actions.ChawatheScriptGenerator;
+import com.github.gumtreediff.actions.Diff;
+import com.github.gumtreediff.actions.EditScript;
+import com.github.gumtreediff.actions.SimplifiedChawatheScriptGenerator;
 import com.github.gumtreediff.client.Option;
 import com.github.gumtreediff.client.Register;
 import com.github.gumtreediff.client.diff.AbstractDiffClient;
-import com.github.gumtreediff.client.diff.web.DirectoryComparatorView;
-import com.github.gumtreediff.client.diff.web.MergelyView;
-import com.github.gumtreediff.client.diff.web.ScriptView;
+import com.github.gumtreediff.client.diff.webdiff.*;
 import com.github.gumtreediff.gen.Registry;
 import com.github.gumtreediff.io.DirectoryComparator;
+import com.github.gumtreediff.matchers.MappingStore;
+import com.github.gumtreediff.matchers.Matcher;
+import com.github.gumtreediff.matchers.Matchers;
 import com.github.gumtreediff.tree.TreeContext;
 import com.github.gumtreediff.utils.Pair;
-import graftast.GraftFileList;
-import graftast.ProjectMatcher;
 import graftast.ProjectTreeGenerator;
 import org.rendersnake.HtmlCanvas;
 import org.rendersnake.Renderable;
@@ -46,10 +50,14 @@ import java.nio.file.Paths;
 
 import static spark.Spark.*;
 
-@Register(description = "a web Diff client", options = WebDiffMod.Options.class, priority = Registry.Priority.HIGH)
-public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
+@Register(description = "Web diff client", options = WebDiff.WebDiffOptions.class, priority = Registry.Priority.HIGH)
+public class WebDiffMod extends AbstractDiffClient<WebDiffMod.WebDiffOptions> {
+    public static final String JQUERY_JS_URL = "https://code.jquery.com/jquery-3.4.1.min.js";
+    public static final String BOOTSTRAP_CSS_URL = "https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css";
+    public static final String BOOTSTRAP_JS_URL = "https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js";
+    public static final String POPPER_JS_URL = " https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js";
 
-    String type;
+    private String type;
 
     public WebDiffMod(String[] args) {
         super(args);
@@ -57,27 +65,21 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
             type = args[2];
     }
 
-    static class Options extends AbstractDiffClient.Options {
-        protected int defaultPort = Integer.parseInt(System.getProperty("gt.web.port", "4567"));
-        boolean stdin = true;
+    public static class WebDiffOptions extends AbstractDiffClient.DiffOptions {
+        public static final int DEFAULT_PORT = 4567;
+        public int port = DEFAULT_PORT;
 
         @Override
         public Option[] values() {
             return Option.Context.addValue(super.values(),
-                    new Option("--port", String.format("set server port (default to %d)", defaultPort), 1) {
+                    new Option("--port", String.format("Set server port (default to %d).", DEFAULT_PORT), 1) {
                         @Override
                         protected void process(String name, String[] args) {
                             int p = Integer.parseInt(args[0]);
                             if (p > 0)
-                                defaultPort = p;
+                                port = p;
                             else
-                                System.err.printf("Invalid port number (%s), using %d\n", args[0], defaultPort);
-                        }
-                    },
-                    new Option("--no-stdin", String.format("Do not listen to stdin"), 0) {
-                        @Override
-                        protected void process(String name, String[] args) {
-                            stdin = false;
+                                System.err.printf("Invalid port number (%s), using %d.\n", args[0], port);
                         }
                     }
             );
@@ -85,17 +87,17 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
     }
 
     @Override
-    protected Options newOptions() {
-        return new Options();
+    protected WebDiffOptions newOptions() {
+        return new WebDiffOptions();
     }
 
     @Override
     public void run() {
-        DirectoryComparator comparator = new DirectoryComparator(opts.src, opts.dst);
+        DirectoryComparator comparator = new DirectoryComparator(opts.srcPath, opts.dstPath);
         comparator.compare();
-        configureSpark(comparator, opts.defaultPort);
+        configureSpark(comparator, opts.port);
         Spark.awaitInitialization();
-        System.out.println(String.format("Starting server: %s:%d", "http://127.0.0.1", opts.defaultPort));
+        System.out.println(String.format("Starting server: %s:%d.", "http://127.0.0.1", opts.port));
     }
 
     public void configureSpark(final DirectoryComparator comparator, int port) {
@@ -105,50 +107,53 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
             if (comparator.isDirMode())
                 response.redirect("/list");
             else
-                response.redirect("/Diff/0");
+                response.redirect("/vanilla-diff/0");
             return "";
         });
         get("/list", (request, response) -> {
-            Renderable view = new DirectoryComparatorView(comparator);
+            Renderable view = new DirectoryDiffView(comparator);
             return render(view);
         });
-        get("/diff/:id", (request, response) -> {
+        get("/vanilla-diff/:id", (request, response) -> {
             int id = Integer.parseInt(request.params(":id"));
-            ProjectTreeGenerator generator = new ProjectTreeGenerator(opts.src, opts.dst, "java");
-            Pair<TreeContext, TreeContext> projectTreePair = generator.getProjectTreeContextPair();
-            GraftFileList graftFileList = generator.getGraftFileList();
-            new TreeModifier(graftFileList).modify(projectTreePair);
-            Renderable view = new DiffViewMod(
-                    graftFileList,
-                    projectTreePair.first,
-                    projectTreePair.second,
-                    new ProjectMatcher(),
-                    new ChawatheScriptGenerator());
+            Diff diff = getDiff(opts.srcPath, opts.dstPath);
+            Renderable view = new VanillaDiffViewMod(new File(opts.srcPath), new File(opts.dstPath), diff, false, type);
             return render(view);
         });
-        get("/mergely/:id", (request, response) -> {
+        get("/monaco-diff/:id", (request, response) -> {
             int id = Integer.parseInt(request.params(":id"));
-            Renderable view = new MergelyView(id);
+            Pair<File, File> pair = comparator.getModifiedFiles().get(id);
+            Diff diff = super.getDiff(pair.first.getAbsolutePath(), pair.second.getAbsolutePath());
+            Renderable view = new MonacoDiffView(pair.first, pair.second, diff, id);
+            return render(view);
+        });
+        get("/monaco-native-diff/:id", (request, response) -> {
+            int id = Integer.parseInt(request.params(":id"));
+            Pair<File, File> pair = comparator.getModifiedFiles().get(id);
+            Renderable view = new MonacoNativeDiffView(pair.first, pair.second, id);
+            return render(view);
+        });
+        get("/mergely-diff/:id", (request, response) -> {
+            int id = Integer.parseInt(request.params(":id"));
+            Renderable view = new MergelyDiffView(id);
+            return render(view);
+        });
+        get("/raw-diff/:id", (request, response) -> {
+            int id = Integer.parseInt(request.params(":id"));
+            Pair<File, File> pair = comparator.getModifiedFiles().get(id);
+            Diff diff = getDiff(opts.srcPath, opts.dstPath);
+            Renderable view = new TextDiffView(new File(opts.srcPath), new File(opts.dstPath), diff);
             return render(view);
         });
         get("/left/:id", (request, response) -> {
             int id = Integer.parseInt(request.params(":id"));
             Pair<File, File> pair = comparator.getModifiedFiles().get(id);
-            //return readFile(pair.first.getAbsolutePath(), Charset.defaultCharset());
-            return readFile("tmp/srcSource", Charset.defaultCharset());
+            return readFile(pair.first.getAbsolutePath(), Charset.defaultCharset());
         });
         get("/right/:id", (request, response) -> {
             int id = Integer.parseInt(request.params(":id"));
             Pair<File, File> pair = comparator.getModifiedFiles().get(id);
-            //return readFile(pair.second.getAbsolutePath(), Charset.defaultCharset());
-            return readFile("tmp/dstSource", Charset.defaultCharset());
-        });
-        get("/script/:id", (request, response) -> {
-            int id = Integer.parseInt(request.params(":id"));
-            Pair<File, File> pair = comparator.getModifiedFiles().get(id);
-            //Renderable view = new ScriptView(pair.first, pair.second);
-            Renderable view = new ScriptView(new File("tmp/srcSource"), new File("tmp/dstSource"));
-            return render(view);
+            return readFile(pair.second.getAbsolutePath(), Charset.defaultCharset());
         });
         get("/quit", (request, response) -> {
             System.exit(0);
@@ -156,19 +161,27 @@ public class WebDiffMod extends AbstractDiffClient<WebDiffMod.Options> {
         });
     }
 
-    private static String render(Renderable r) {
+    private static String render(Renderable r) throws IOException {
         HtmlCanvas c = new HtmlCanvas();
-        try {
-            r.renderOn(c);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        r.renderOn(c);
         return c.toHtml();
     }
 
     private static String readFile(String path, Charset encoding)  throws IOException {
         byte[] encoded = Files.readAllBytes(Paths.get(path));
         return new String(encoded, encoding);
+    }
+
+    @Override
+    protected Diff getDiff(String src, String dst) throws IOException {
+        Pair<TreeContext, TreeContext> projectTreeContextPair = new ProjectTreeGenerator(src, dst, type).getProjectTreeContextPair();
+        TreeContext srcTree = projectTreeContextPair.first;
+        TreeContext dstTree = projectTreeContextPair.second;
+        Matcher m = Matchers.getInstance().getMatcherWithFallback(opts.matcherId);
+        m.configure(opts.properties);
+        MappingStore mappings = m.match(srcTree.getRoot(), dstTree.getRoot());
+        EditScript editScript = new SimplifiedChawatheScriptGenerator().computeActions(mappings);
+        return new Diff(srcTree, dstTree, mappings, editScript);
     }
 
 }

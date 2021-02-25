@@ -1,26 +1,48 @@
-EN  [JP](https://github.com/kusumotolab/Graftast/blob/master/README_JP.md)
+EN  [JP](./README_JP.md)
 
 # Graftast
 
 Graftast is an extension tool of [GumTree](https://github.com/GumTreeDiff/gumtree). Comparing targets are expanded from single file to multiple files.
 
-## Requirement (Using jar)
-
-JDK8+
-GumTree 2.1.3(Build your self)
-
 ---
 
 ## Installation
 
-You can download zip [here](https://github.com/kusumotolab/Graftast/releases/tag/v1.0)(Binary version).
-Or if you build from source code, please deploy jar files of GumTree into Graftast/lib/ .
+### Download Binary
+
+You can download zip [here](https://github.com/kusumotolab/Graftast/releases/latest).
+
+### Build with Gradle
+
+Clone this project.
+
+```
+$ git clone git@github.com:kusumotolab/Graftast.git
+```
+
+Create `gradle.properties` in project root with the following contents.
+
+```
+GITHUB_USER = XXXXXX
+GUTHUB_TOKEN = YYYYYY
+```
+
+Add GitHub authentication in `gradle.properties` because GumTree is published in Github Package. If you want to know detail about GitHub authentication, see [this page](https://docs.github.com/en/packages/learn-github-packages/about-github-packages#about-scopes-and-permissions-for-package-registries).
+
+Next, execute the following command.
+
+```
+$ cd Graftast
+$ ./gradlew build
+```
+
+A Zip file will be generated under `build/distributions`.
 
 ---
 
 ## Usage
 
-Unzip downloaded file, and execute a file in bin folder.
+Unzip downloaded or builded file, and execute a file in bin folder.
 
 ```
 Graftast (diff|webdiff) dir1 dir2 fileType
@@ -38,7 +60,7 @@ Graftast (diff|webdiff) dir1 dir2 fileType
 
 ## API Usage
 
-You can use a part of Graftast directly from the Java code. However, you needs installation of gumtree2.1.3. Referencing installation of gumtree2.1.3 is [here](https://github.com/GumTreeDiff/gumtree/wiki/Getting-Started).
+You can use a part of Graftast directly from the Java code. JDK11 is necessary.
 
 ### Construction of project AST
 
@@ -46,9 +68,9 @@ You can use a part of Graftast directly from the Java code. However, you needs i
 Run.initGenerators();
 String srcDir = "";
 String dstDir = "";
-Pair<ITree, ITree> projectTrees = new ProjectTreeGenerator(srcDir, dstDir, ".java");
-ITree srcTree = projectTrees.first;
-ITree dstTree = projectTrees.second;
+Pair<Tree, Tree> projectTrees = new ProjectTreeGenerator(srcDir, dstDir, ".java");
+Tree srcTree = projectTrees.first;
+Tree dstTree = projectTrees.second;
 ```
 
 ### Getting mappings
@@ -57,7 +79,7 @@ ITree dstTree = projectTrees.second;
 GraftastMain graftastMain = new GraftastMain();
 String srcDir = "";
 String dstDir = "";
-Pair<ITree, ITree> projectTrees = new ProjectTreeGenerator(srcDir, dstDir, ".java");
+Pair<Tree, Tree> projectTrees = new ProjectTreeGenerator(srcDir, dstDir, ".java");
 MappingStore mappingStore = graftastMain.getMappings(projectTrees);
 ```
 
@@ -67,9 +89,9 @@ or
 Run.initGenerators();
 String srcDir = "";
 String dstDir = "";
-Pair<ITree, ITree> projectTrees = new ProjectTreeGenerator(srcDir, dstDir, ".java");
-ITree srcTree = projectTrees.first;
-ITree dstTree = projectTrees.second;
+Pair<Tree, Tree> projectTrees = new ProjectTreeGenerator(srcDir, dstDir, ".java");
+Tree srcTree = projectTrees.first;
+Tree dstTree = projectTrees.second;
 MappingStore mappingStore = new ProjectMatcher().match(srcTree, dstTree);
 ```
 
@@ -79,7 +101,7 @@ MappingStore mappingStore = new ProjectMatcher().match(srcTree, dstTree);
 GraftastMain graftastMain = new GraftastMain();
 String srcDir = "";
 String dstDir = "";
-Pair<ITree, ITree> projectTrees = new ProjectTreeGenerator(srcDir, dstDir, ".java");
+Pair<Tree, Tree> projectTrees = new ProjectTreeGenerator(srcDir, dstDir, ".java");
 EditScript editScript = graftastMain.calcurateEditScript(projectTrees);
 ```
 
@@ -90,8 +112,8 @@ Run.initGenerators();
 String srcDir = "";
 String dstDir = "";
 Pair<ITree, ITree> projectTrees = new ProjectTreeGenerator(srcDir, dstDir, ".java");
-ITree srcTree = projectTrees.first;
-ITree dstTree = projectTrees.second;
+Tree srcTree = projectTrees.first;
+Tree dstTree = projectTrees.second;
 MappingStore mappingStore = new ProjectMatcher().match(srcTree, dstTree);
 EditScriptGenerator editScriptGenerator = new ChawatheScriptGenerator();
 EditScript editScript = editScriptGenerator.computeActions(mappingStore);

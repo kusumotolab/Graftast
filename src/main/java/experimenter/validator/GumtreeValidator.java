@@ -1,7 +1,7 @@
 package experimenter.validator;
 
 import com.github.gumtreediff.client.Run;
-import com.github.gumtreediff.client.diff.web.WebDiff;
+import com.github.gumtreediff.client.diff.webdiff.WebDiff;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;

@@ -1,7 +1,7 @@
 package graftast;
 
-import com.github.gumtreediff.gen.Generators;
 import com.github.gumtreediff.gen.TreeGenerator;
+import com.github.gumtreediff.gen.TreeGenerators;
 import com.github.gumtreediff.tree.*;
 import com.github.gumtreediff.utils.Pair;
 
@@ -24,26 +24,26 @@ public class ProjectTreeGenerator {
         return graftFileList;
     }
 
-    public Pair<ITree, ITree> getProjectTreePair() throws IOException {
+    public Pair<Tree, Tree> getProjectTreePair() throws IOException {
         List<SourceElement> srcFiles = graftFileList.getSrcFiles();
         List<SourceElement> dstFiles = graftFileList.getDstFiles();
-        ITree srcTree = getProjectTree(srcFiles);
-        ITree dstTree = getProjectTree(dstFiles);
+        Tree srcTree = getProjectTree(srcFiles);
+        Tree dstTree = getProjectTree(dstFiles);
         return new Pair<>(srcTree, dstTree);
     }
 
-    public ITree getProjectTree(List<SourceElement> sourceElements) throws IOException {
-        ITree projectTree = new Tree(TypeSet.type("CompilationUnit")); //土台となる木の元
+    public Tree getProjectTree(List<SourceElement> sourceElements) throws IOException {
+        Tree projectTree = new DefaultTree(TypeSet.type("CompilationUnit")); //土台となる木の元
         for (SourceElement sourceElement: sourceElements) {
-            ITree it = getTree(sourceElement).getRoot();
-            it.setLabel(sourceElement.getProjectRelativePath());
-            projectTree.addChild(it);
+            Tree tree = getTree(sourceElement).getRoot();
+            tree.setLabel(sourceElement.getProjectRelativePath());
+            projectTree.addChild(tree);
         }
         return projectTree;
     }
 
     public Pair<TreeContext, TreeContext> getProjectTreeContextPair() throws IOException {
-        Pair<ITree, ITree> projectTreePair = getProjectTreePair();
+        Pair<Tree, Tree> projectTreePair = getProjectTreePair();
         TreeContext srcTree = new TreeContext();
         TreeContext dstTree = new TreeContext();
         srcTree.setRoot(projectTreePair.first);
@@ -51,12 +51,12 @@ public class ProjectTreeGenerator {
         return new Pair<>(srcTree, dstTree);
     }
 
-    private void fixMetrics(ITree tree) {
+    private void fixMetrics(Tree tree) {
         TreeVisitor.visitTree(tree, new TreeMetricComputer());
     }
 
     private TreeContext getTree(SourceElement sourceElement) throws IOException {
-        TreeGenerator p = Generators.getInstance().get(sourceElement.getName());
+        TreeGenerator p = TreeGenerators.getInstance().get(sourceElement.getName());
         if (p == null) {
             throw new UnsupportedOperationException("No generator found for file: " + sourceElement.getName());
         } else {

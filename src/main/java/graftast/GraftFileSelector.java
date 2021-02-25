@@ -11,11 +11,11 @@ import java.util.List;
 
 public class GraftFileSelector {
 
-    public GraftFileList run(String srcDir, String dstDir, String fileType) {
+    public GraftFileList run(File srcDir, File dstDir, String fileType) {
         GraftFileList graftFileList = new GraftFileList();
 
-        List<File> srcFiles = FileUtil.findAllFiles(new File(srcDir), fileType);
-        List<File> dstFiles = FileUtil.findAllFiles(new File(dstDir), fileType);
+        List<File> srcFiles = FileUtil.findAllFiles(srcDir, fileType);
+        List<File> dstFiles = FileUtil.findAllFiles(dstDir, fileType);
 
         List<File> srcUnchanged = new LinkedList<>();
         List<File> dstUnchanged = new LinkedList<>();
@@ -42,6 +42,10 @@ public class GraftFileSelector {
         dstFiles.stream().filter(dstFile -> !dstUnchanged.contains(dstFile)).forEach(dstFile -> graftFileList.addDstFile(dstFile, dstDir));
 
         return graftFileList;
+    }
+
+    public GraftFileList run(String srcDir, String dstDir, String fileType) {
+        return run(new File(srcDir), new File(dstDir), fileType);
     }
 
     public GraftFileList run(List<FileContainer> srcFiles, List<FileContainer> dstFiles, String fileType) {

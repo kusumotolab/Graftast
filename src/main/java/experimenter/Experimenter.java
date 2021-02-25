@@ -3,7 +3,7 @@ package experimenter;
 import com.github.gumtreediff.actions.EditScript;
 import com.github.gumtreediff.actions.model.Action;
 import com.github.gumtreediff.actions.model.Move;
-import com.github.gumtreediff.tree.ITree;
+import com.github.gumtreediff.tree.Tree;
 import com.github.gumtreediff.utils.Pair;
 import graftast.FileContainer;
 import graftast.GraftastMain;
@@ -150,7 +150,7 @@ class Compare implements Runnable {
         List<FileContainer> dst = getFileContainers(dstCommit, args[0]); //newProject
 
         GraftastMain graftastMain = new GraftastMain();
-        Pair<ITree, ITree> projectTrees;
+        Pair<Tree, Tree> projectTrees;
         try {
             projectTrees = new ProjectTreeGenerator(src, dst, "java").getProjectTreePair();
         } catch (IOException e) {
@@ -186,9 +186,9 @@ class Compare implements Runnable {
                         printLogWriter.println(action.toString());
                         try {
                             String toMoveName = "";
-                            for (ITree it: mv.getParent().getChild(mv.getPosition()).getChildren()) {
-                                if (it.getType().name.equals("SimpleName"))
-                                    toMoveName = it.getLabel();
+                            for (Tree tree: mv.getParent().getChild(mv.getPosition()).getChildren()) {
+                                if (tree.getType().name.equals("SimpleName"))
+                                    toMoveName = tree.getLabel();
                             }
                             printLogWriter.println(mv.getParent().getChild(mv.getPosition()).toString() + " (" + toMoveName + ")");
                         } catch (IndexOutOfBoundsException e) {

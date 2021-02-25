@@ -6,15 +6,48 @@ plugins {
 
 mainClassName = 'graftast.GraftastMain'
 
-version = '1.0'
+version = '1.1'
 
 repositories {
     mavenCentral()
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/gumtreediff/gumtree")
+        credentials {
+            username = project.hasProperty("GITHUB_USER") ? GITHUB_USER : ''
+            password = project.hasProperty("GITHUB_TOKEN") ? GITHUB_TOKEN : ''
+        }
+    }
 }
 
 dependencies {
-    compile fileTree(dir: 'lib/gumtree-2.1.3-SNAPSHOT/lib', include: '*.jar')
-    implementation group: 'org.eclipse.jgit', name: 'org.eclipse.jgit', version: '5.5.1.201910021850-r'
+    implementation group: 'com.github.gumtreediff', name: 'core', version: '3.0.0-beta1'
+    implementation group: 'com.github.gumtreediff', name: 'client', version: '3.0.0-beta1'
+    implementation group: 'com.github.gumtreediff', name: 'client.diff', version: '3.0.0-beta1'
+    implementation group: 'com.github.gumtreediff', name: 'gen.jdt', version: '3.0.0-beta1'
+    implementation group: 'com.github.gumtreediff', name: 'gen.javaparser', version: '3.0.0-beta1'
+    implementation group: 'com.github.gumtreediff', name: 'gen.antlr3-antlr', version: '3.0.0-beta1'
+    implementation group: 'com.github.gumtreediff', name: 'gen.antlr', version: '3.0.0-beta1'
+    implementation group: 'com.github.gumtreediff', name: 'gen.antlr3-php', version: '3.0.0-beta1'
+    implementation group: 'com.github.gumtreediff', name: 'gen.antlr3-xml', version: '3.0.0-beta1'
+    implementation group: 'com.github.gumtreediff', name: 'gen.antlr4', version: '3.0.0-beta1'
+    implementation group: 'com.github.gumtreediff', name: 'gen.antlr3-r', version: '3.0.0-beta1'
+    implementation group: 'com.github.gumtreediff', name: 'gen.antlr3-json', version: '3.0.0-beta1'
+    implementation group: 'com.github.gumtreediff', name: 'gen.css', version: '3.0.0-beta1'
+    implementation group: 'com.github.gumtreediff', name: 'gen.c', version: '3.0.0-beta1'
+    implementation group: 'com.github.gumtreediff', name: 'gen.python', version: '3.0.0-beta1'
+    implementation group: 'com.github.gumtreediff', name: 'gen.js', version: '3.0.0-beta1'
+    implementation group: 'com.github.gumtreediff', name: 'gen.srcml', version: '3.0.0-beta1'
+    implementation group: 'com.github.gumtreediff', name: 'gen.ruby', version: '3.0.0-beta1'
+
+    // client.diff
+    implementation 'com.sparkjava:spark-core:2.9.1'
+    implementation 'it.unimi.dsi:fastutil:8.3.1'
+    implementation('org.rendersnake:rendersnake:1.9.0') {
+        exclude group: 'javax.servlet', module: 'servlet-api'
+    }
+
+    implementation group: 'org.eclipse.jgit', name: 'org.eclipse.jgit', version: '5.10.0.202012080955-r'
     implementation group: 'com.sksamuel.diff', name: 'diff', version: '1.1.11'
     implementation group: 'me.tongfei', name: 'progressbar', version: '0.7.4'
 }

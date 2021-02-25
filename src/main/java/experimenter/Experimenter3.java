@@ -7,7 +7,7 @@ import com.github.gumtreediff.actions.model.Move;
 import com.github.gumtreediff.matchers.MappingStore;
 import com.github.gumtreediff.matchers.Matcher;
 import com.github.gumtreediff.matchers.Matchers;
-import com.github.gumtreediff.tree.ITree;
+import com.github.gumtreediff.tree.Tree;
 import com.github.gumtreediff.utils.Pair;
 import graftast.FileContainer;
 import graftast.GraftastMain;
@@ -164,7 +164,7 @@ class Compare3 implements Callable<List<Double>> {
         List<FileContainer> dst = getFileContainers(dstCommit, args[0]); //newProject
 
         GraftastMain graftastMain = new GraftastMain();
-        Pair<ITree, ITree> projectTrees;
+        Pair<Tree, Tree> projectTrees;
         try {
             projectTrees = new ProjectTreeGenerator(src, dst, "java").getProjectTreePair();
         } catch (IOException e) {
@@ -192,16 +192,16 @@ class Compare3 implements Callable<List<Double>> {
                 String dstFileNameOriginal = TreeUtil.getAffiliatedFileName(mv.getParent());
                 if (!srcFileName.equals(dstFileName)) {
                     if (!isFileRenamed(srcFileName, dstFileName)) { //ファイルがリネームされただけのものではない
-                        ITree srcNode = mv.getNode();
-                        ITree srcNodeParent = srcNode.getParent();
-                        ITree dstNode;
+                        Tree srcNode = mv.getNode();
+                        Tree srcNodeParent = srcNode.getParent();
+                        Tree dstNode;
                         try {
                             dstNode = mv.getParent().getChild(mv.getPosition());
                         } catch (IndexOutOfBoundsException e) {
                             System.out.println("index");
                             continue;
                         }
-                        ITree dstNodeParent = dstNode.getParent();
+                        Tree dstNodeParent = dstNode.getParent();
                         srcNode.setParent(null);
                         dstNode.setParent(null);
 

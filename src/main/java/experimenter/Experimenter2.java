@@ -7,7 +7,7 @@ import com.github.gumtreediff.gen.jdt.JdtTreeGenerator;
 import com.github.gumtreediff.matchers.MappingStore;
 import com.github.gumtreediff.matchers.Matcher;
 import com.github.gumtreediff.matchers.Matchers;
-import com.github.gumtreediff.tree.ITree;
+import com.github.gumtreediff.tree.Tree;
 import com.github.gumtreediff.utils.Pair;
 import graftast.FileContainer;
 import graftast.GraftastMain;
@@ -181,8 +181,8 @@ class Compare2 implements Callable<DiffResult> {
                     if (Diff.diff(srcFC.getContent(), dstFC.getContent()))
                         continue;
                     try {
-                        ITree srcTree = new JdtTreeGenerator().generateFrom().string(srcFC.getContent()).getRoot();
-                        ITree dstTree = new JdtTreeGenerator().generateFrom().string(dstFC.getContent()).getRoot();
+                        Tree srcTree = new JdtTreeGenerator().generateFrom().string(srcFC.getContent()).getRoot();
+                        Tree dstTree = new JdtTreeGenerator().generateFrom().string(dstFC.getContent()).getRoot();
                         Matcher m = Matchers.getInstance().getMatcher();
                         MappingStore mappings = m.match(srcTree, dstTree);
                         EditScript editScript = new ChawatheScriptGenerator().computeActions(mappings);
@@ -208,7 +208,7 @@ class Compare2 implements Callable<DiffResult> {
 
         // 提案
         GraftastMain graftastMain = new GraftastMain();
-        Pair<ITree, ITree> projectTrees;
+        Pair<Tree, Tree> projectTrees;
         try {
             ProjectTreeGenerator projectTreeGenerator = new ProjectTreeGenerator(src, dst, "java");
             projectTrees = projectTreeGenerator.getProjectTreePair();
@@ -250,9 +250,9 @@ class Compare2 implements Callable<DiffResult> {
                         printLogWriter.println(action.toString());
                         try {
                             String toMoveName = "";
-                            for (ITree it : mv.getParent().getChild(mv.getPosition()).getChildren()) {
-                                if (it.getType().name.equals("SimpleName"))
-                                    toMoveName = it.getLabel();
+                            for (Tree tree : mv.getParent().getChild(mv.getPosition()).getChildren()) {
+                                if (tree.getType().name.equals("SimpleName"))
+                                    toMoveName = tree.getLabel();
                             }
                             printLogWriter.println(mv.getParent().getChild(mv.getPosition()).toString() + " (" + toMoveName + ")");
                         } catch (IndexOutOfBoundsException e) {

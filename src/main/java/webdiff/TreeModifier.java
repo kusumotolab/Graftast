@@ -1,6 +1,6 @@
 package webdiff;
 
-import com.github.gumtreediff.tree.ITree;
+import com.github.gumtreediff.tree.Tree;
 import com.github.gumtreediff.tree.TreeContext;
 import com.github.gumtreediff.utils.Pair;
 import graftast.GraftFileList;
@@ -15,9 +15,9 @@ public class TreeModifier {
     }
 
     public void modify(Pair<TreeContext, TreeContext> treeContextPair) {
-        ITree srcTree = treeContextPair.first.getRoot();
+        Tree srcTree = treeContextPair.first.getRoot();
         int length = 0;
-        for (ITree iTree : srcTree.getChildren()) {
+        for (Tree iTree : srcTree.getChildren()) {
             String name = iTree.getLabel();
             SourceElement se = graftFileList.getSrcSourceElement(name);
             length += 106 + name.length();
@@ -27,9 +27,9 @@ public class TreeModifier {
         }
         srcTree.setLength(length);
 
-        ITree dstTree = treeContextPair.second.getRoot();
+        Tree dstTree = treeContextPair.second.getRoot();
         length = 0;
-        for (ITree iTree : dstTree.getChildren()) {
+        for (Tree iTree : dstTree.getChildren()) {
             String name = iTree.getLabel();
             SourceElement se = graftFileList.getDstSourceElement(name);
             length += 106 + name.length();
@@ -45,8 +45,8 @@ public class TreeModifier {
      * @param iTree
      * @param length
      */
-    private void fixTreePosLength(ITree iTree, int length) {
-        for (ITree it: iTree.getChildren()) {
+    private void fixTreePosLength(Tree iTree, int length) {
+        for (Tree it: iTree.getChildren()) {
             if (it.getChildren().size() == 0) { //葉ノード
                 it.setPos(it.getPos() + length);
             } else { //枝ノード

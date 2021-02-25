@@ -2,7 +2,7 @@ package experimenter.treeSearcher;
 
 import com.github.gumtreediff.gen.SyntaxException;
 import com.github.gumtreediff.gen.jdt.JdtTreeGenerator;
-import com.github.gumtreediff.tree.ITree;
+import com.github.gumtreediff.tree.Tree;
 import com.github.gumtreediff.tree.TreeUtils;
 
 import java.io.IOException;
@@ -24,10 +24,10 @@ public class treeSearcher {
                     if (file.toString().endsWith("java")) {
                         JdtTreeGenerator jdtTreeGenerator = new JdtTreeGenerator();
                         try {
-                            ITree iTree = jdtTreeGenerator.generateFrom().string(new String(Files.readAllBytes(file))).getRoot();
-                            Iterator<ITree> iterator = TreeUtils.breadthFirstIterator(iTree);
+                            Tree tree = jdtTreeGenerator.generateFrom().string(new String(Files.readAllBytes(file))).getRoot();
+                            Iterator<Tree> iterator = TreeUtils.breadthFirstIterator(tree);
                             while (iterator.hasNext()) {
-                                ITree it = iterator.next();
+                                Tree it = iterator.next();
                                 switch (it.getType().name) {
                                     case "IfStatement":
                                         numOfIf += 1;
